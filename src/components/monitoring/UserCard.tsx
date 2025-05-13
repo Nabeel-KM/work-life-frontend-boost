@@ -1,0 +1,153 @@
+
+import React, { useState } from "react";
+import { UserData } from "@/lib/api";
+import { formatTimeFromSeconds, formatTimeOnly, formatTime } from "@/lib/utils-format";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { History, Image } from "lucide-react";
+import UserHistoryModal from "./UserHistoryModal";
+
+interface UserCardProps {
+  user: UserData;
+  onViewScreenshots: (username: string) => void;
+}
+
+const UserCard = ({ user, onViewScreenshots }: UserCardProps) => {
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Status indicator color
+  const getStatusColor = () => {
+    if (user.screen_shared) return "bg-green-500";
+    if (user.active_app) return "bg-yellow-500";
+    return "bg-gray-500";
+  };
+
+  // Top apps (limit to 3)
+  const topApps = user.app_usage
+    ?.sort((a, b) => b.total_time - a.total_time)
+    .slice(0, 3);
+
+  return (
+    <Card className={`overflow-hidden ${user.screen_shared ? "border-green-200 dark:border-green-800" : ""}`}>
+      <CardContent className="p-0">
+        <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-6">
+          {/* User info section */}
+          <div className="p-4 lg:p-6 md:col-span-2 lg:border-r border-gray-100 dark:border-gray-800">
+            <div className="flex items-start gap-3">
+              <div className={`h-3 w-3 rounded-full mt-1.5 ${getStatusColor()}`}></div>
+              <div>
+                <h3 className="font-medium text-lg">{user.username}</h3>
+                <p className="text-muted-foreground text-sm">
+                  {user.channel || "No active channel"} • 
+                  {user.screen_shared 
+                    ? <span className="text-green-600 dark:text-green-400"> Streaming</span> 
+                    : user.active_app 
+                      ? <span className="text-yellow-600 dark:text-yellow-400"> Active</span>
+                      : <span className="text-gray-500"> Offline</span>
+                  }
+                </p>
+                
+                {user.active_app && (
+                  <div className="mt-2">
+                    <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+                      {user.active_app}
+                    </Badge>
+                  </div>
+                )}
+                
+                <div className="mt-4 space-y-1">
+                  {user.duty_start_time && (
+                    <p className="text-xs text-muted-foreground">Started: {formatTimeOnly(user.duty_start_time)}</p>
+                  )}
+                  {user.duty_end_time && (
+                    <p className="text-xs text-muted-foreground">Ended: {formatTimeOnly(user.duty_end_time)}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="flex items-center gap-1" 
+                onClick={() => setShowHistory(true)}
+              >
+                <History className="h-3.5 w-3.5" />
+                History
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="flex items-center gap-1"
+                onClick={() => onViewScreenshots(user.username)}
+              >
+                <Image className="h-3.5 w-3.5" />
+                Screenshots
+              </Button>
+            </div>
+          </div>
+          
+          {/* Activity metrics section */}
+          <div className="p-4 lg:p-6 md:col-span-3 lg:col-span-4 bg-gray-50/50 dark:bg-gray-900/50">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">Active Time</h4>
+                <p className="text-xl font-bold mt-1">{formatTime(user.total_active_time)}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">Session Time</h4>
+                <p className="text-xl font-bold mt-1">{user.total_session_time.toFixed(1)}h</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">Idle Time</h4>
+                <p className="text-xl font-bold mt-1">{formatTime(user.total_idle_time)}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">Screen Share</h4>
+                <p className="text-xl font-bold mt-1">{formatTimeFromSeconds(user.screen_share_time)}</p>
+              </div>
+            </div>
+            
+            {/* Top apps section */}
+            <div className="mt-6">
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">Top Applications</h4>
+              {topApps && topApps.length > 0 ? (
+                <div className="space-y-2">
+                  {topApps.map((app) => (
+                    <div key={app.app_name} className="flex items-center justify-between">
+                      <span className="text-sm truncate max-w-[70%]">{app.app_name}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-blue-500 rounded-full"
+                            style={{ 
+                              width: `${Math.min(100, (app.total_time / (user.total_active_time || 1)) * 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{formatTime(app.total_time)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No application usage data</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+      
+      {/* History Modal */}
+      <UserHistoryModal 
+        isOpen={showHistory} 
+        onClose={() => setShowHistory(false)} 
+        username={user.username}
+      />
+    </Card>
+  );
+};
+
+export default UserCard;
