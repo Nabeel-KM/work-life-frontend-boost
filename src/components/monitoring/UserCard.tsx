@@ -1,11 +1,11 @@
-
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { UserData } from "@/lib/api";
 import { formatTimeFromSeconds, formatTimeOnly, formatTime } from "@/lib/utils-format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { History, Image } from "lucide-react";
+import { History, Image, User } from "lucide-react";
 import UserHistoryModal from "./UserHistoryModal";
 
 interface UserCardProps {
@@ -37,7 +37,12 @@ const UserCard = ({ user, onViewScreenshots }: UserCardProps) => {
             <div className="flex items-start gap-3">
               <div className={`h-3 w-3 rounded-full mt-1.5 ${getStatusColor()}`}></div>
               <div>
-                <h3 className="font-medium text-lg">{user.username}</h3>
+                <h3 className="font-medium text-lg">
+                  <Link to={`/user/${user.username}`} className="hover:underline text-primary">
+                    {user.username}
+                  </Link>
+                </h3>
+                
                 <p className="text-muted-foreground text-sm">
                   {user.channel || "No active channel"} • 
                   {user.screen_shared 
@@ -86,6 +91,16 @@ const UserCard = ({ user, onViewScreenshots }: UserCardProps) => {
                 <Image className="h-3.5 w-3.5" />
                 Screenshots
               </Button>
+              <Link to={`/user/${user.username}`}>
+                <Button 
+                  size="sm" 
+                  variant="default"
+                  className="flex items-center gap-1"
+                >
+                  <User className="h-3.5 w-3.5" />
+                  Details
+                </Button>
+              </Link>
             </div>
           </div>
           
