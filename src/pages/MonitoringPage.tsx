@@ -9,7 +9,7 @@ import StatsCard from "@/components/monitoring/StatsCard";
 import ScreenshotsModal from "@/components/monitoring/ScreenshotsModal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatTime } from "@/lib/utils-format";
+import { formatTime, formatSessionTime } from "@/lib/utils-format";
 import { useQuery } from "@tanstack/react-query";
 
 const MonitoringPage = () => {
@@ -39,7 +39,8 @@ const MonitoringPage = () => {
   const idleUsers = users?.filter(user => !user.screen_shared && user.total_idle_time > 0) || [];
   const offlineUsers = users?.filter(user => !user.screen_shared && !user.active_app) || [];
   
-  const totalWorkingTime = users?.reduce((total, user) => total + (user.total_session_time || 0), 0) || 0;
+  // Calculate total working time in hours for stats display
+  const totalWorkingHours = users?.reduce((total, user) => total + (user.total_session_time || 0), 0) || 0;
   
   // Handle screenshot view
   const handleViewScreenshots = (username: string) => {
@@ -99,7 +100,7 @@ const MonitoringPage = () => {
         />
         <StatsCard 
           title="Total Working Hours"
-          value={totalWorkingTime.toFixed(1)}
+          value={totalWorkingHours.toFixed(1)}
           description="Today's progress"
           icon={<Settings className="h-5 w-5" />}
           suffix="h"

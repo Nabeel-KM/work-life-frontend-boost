@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { api, UserHistory, HistoryDay } from "@/lib/api";
-import { formatDate, formatTime, formatTimeOnly } from "@/lib/utils-format";
+import { formatDate, formatTime, formatTimeOnly, formatSessionTime } from "@/lib/utils-format";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -79,8 +79,8 @@ const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) 
                 {history.days.map((day, index) => (
                   <TableRow key={index}>
                     <TableCell className="font-medium">{day.date}</TableCell>
-                    <TableCell>{formatTime(day.total_active_time)}</TableCell>
-                    <TableCell>{day.total_session_time.toFixed(1)}h</TableCell>
+                    <TableCell>{formatTime(day.total_active_time * 60)}</TableCell>
+                    <TableCell>{formatSessionTime(day.total_session_time)}</TableCell>
                     <TableCell>{formatTime(day.total_idle_time)}</TableCell>
                     <TableCell>{formatTimeOnly(day.first_activity)}</TableCell>
                     <TableCell>{formatTimeOnly(day.last_activity)}</TableCell>

@@ -1,7 +1,13 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { UserData } from "@/lib/api";
-import { formatTimeFromSeconds, formatTimeOnly, formatTime } from "@/lib/utils-format";
+import { 
+  formatTimeFromSeconds, 
+  formatTimeOnly, 
+  formatTime,
+  formatSessionTime 
+} from "@/lib/utils-format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -113,7 +119,7 @@ const UserCard = ({ user, onViewScreenshots }: UserCardProps) => {
               </div>
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Session Time</h4>
-                <p className="text-xl font-bold mt-1">{user.total_session_time.toFixed(1)}h</p>
+                <p className="text-xl font-bold mt-1">{formatSessionTime(user.total_session_time)}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Idle Time</h4>
