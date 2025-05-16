@@ -149,19 +149,19 @@ const UserCard = memo(({ user, onViewScreenshots }: UserCardProps) => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Active Time</h4>
-                <p className="text-xl font-bold mt-1">{formatHours(user.total_active_time)}</p>
+                <p className="text-xl font-bold mt-1">{formatHours(user.total_active_time || 0)}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Session Time</h4>
-                <p className="text-xl font-bold mt-1">{formatHours(user.total_session_time)}</p>
+                <p className="text-xl font-bold mt-1">{formatHours(user.total_session_time || 0)}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Idle Time</h4>
-                <p className="text-xl font-bold mt-1">{formatHours(user.total_idle_time)}</p>
+                <p className="text-xl font-bold mt-1">{formatHours(user.total_idle_time || 0)}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Screen Share</h4>
-                <p className="text-xl font-bold mt-1">{formatSecondsToTime(user.screen_share_time)}</p>
+                <p className="text-xl font-bold mt-1">{formatSecondsToTime(user.screen_share_time || 0)}</p>
               </div>
             </div>
             
@@ -174,7 +174,7 @@ const UserCard = memo(({ user, onViewScreenshots }: UserCardProps) => {
                     <AppUsageItem 
                       key={app.app_name} 
                       app={app} 
-                      totalActiveTime={user.total_active_time} 
+                      totalActiveTime={user.total_active_time || 1} 
                     />
                   ))}
                 </div>

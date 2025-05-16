@@ -99,7 +99,7 @@ const MonitoringPage = () => {
         />
         <StatsCard 
           title="Total Working Hours"
-          value={formatHours(totalWorkingTime)}
+          value={formatHours(totalWorkingTime || 0)}
           description="Today's progress"
           icon={<Settings className="h-5 w-5" />}
           className="bg-blue-50 dark:bg-blue-900/20"

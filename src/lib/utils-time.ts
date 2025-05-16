@@ -47,6 +47,7 @@ export function formatMinutesToTime(minutes: number): string {
 export function formatHours(hours: number): string {
   if (!hours || isNaN(hours) || hours <= 0) return '0h';
   
+  // Convert decimal hours to whole hours and minutes
   const wholeHours = Math.floor(hours);
   const minutes = Math.round((hours - wholeHours) * 60);
   
