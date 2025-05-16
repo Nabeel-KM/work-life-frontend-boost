@@ -1,4 +1,3 @@
-
 /**
  * Comprehensive time utility functions for the application
  */
@@ -27,7 +26,16 @@ export function formatSecondsToTime(seconds: number): string {
  */
 export function formatMinutesToTime(minutes: number): string {
   if (!minutes || isNaN(minutes) || minutes <= 0) return '0m';
-  return formatSecondsToTime(minutes * 60);
+  
+  // Important: The API sends values in minutes, not seconds
+  // So we need to convert minutes directly to hours and minutes
+  const hours = Math.floor(minutes / 60);
+  const mins = Math.round(minutes % 60);
+  
+  if (hours > 0) {
+    return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
+  }
+  return `${mins}m`;
 }
 
 /**

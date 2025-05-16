@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState, memo, useCallback } from "react";
 import { api, UserHistory, HistoryDay } from "@/lib/api";
-import { formatDate, formatTimeOnly, formatMinutesToTime, formatHours } from "@/lib/utils-time";
+import { formatMinutesToTime, formatTimeOnly, formatHours } from "@/lib/utils-time";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

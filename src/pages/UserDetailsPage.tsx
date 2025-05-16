@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays } from "date-fns";
@@ -9,7 +8,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatSecondsToTime, formatTimeOnly, formatDate } from "@/lib/utils-time";
+import { formatMinutesToTime, formatSecondsToTime, formatTimeOnly, formatDate } from "@/lib/utils-time";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Separator } from "@/components/ui/separator";
 
@@ -133,7 +132,7 @@ const UserDetailsPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Active Time</p>
-                  <p className="text-2xl font-bold">{formatSecondsToTime(selectedDayData.total_active_time * 60)}</p>
+                  <p className="text-2xl font-bold">{formatMinutesToTime(selectedDayData.total_active_time)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Session Time</p>
@@ -179,7 +178,7 @@ const UserDetailsPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-secondary/20 p-4 rounded-md">
                           <div className="text-sm text-muted-foreground">Active Time</div>
-                          <div className="text-2xl font-bold mt-1">{formatSecondsToTime(day.total_active_time * 60)}</div>
+                          <div className="text-2xl font-bold mt-1">{formatMinutesToTime(day.total_active_time)}</div>
                         </div>
                         <div className="bg-secondary/20 p-4 rounded-md">
                           <div className="text-sm text-muted-foreground">Session Time</div>
@@ -190,7 +189,7 @@ const UserDetailsPage = () => {
                           <div className="text-xl font-bold mt-1">{day.most_used_app || "N/A"}</div>
                           {day.most_used_app_time > 0 && (
                             <div className="text-sm text-muted-foreground">
-                              {formatSecondsToTime(day.most_used_app_time)}
+                              {formatMinutesToTime(day.most_used_app_time)}
                             </div>
                           )}
                         </div>
@@ -301,7 +300,7 @@ const UserDetailsPage = () => {
                             ></div>
                           </div>
                           <div className="w-20 text-right text-sm text-muted-foreground">
-                            {formatSecondsToTime(app.total_time)}
+                            {formatMinutesToTime(app.total_time)}
                           </div>
                         </div>
                       </div>
