@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, memo, useCallback } from "react";
 import { api, Screenshot } from "@/lib/api";
-import { formatTimeOnly } from "@/lib/utils-format";
+import { formatTimeOnly } from "@/lib/utils-time";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -134,7 +134,5 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
 });
 
 ScreenshotsModal.displayName = "ScreenshotsModal";
-
-export default ScreenshotsModal;
 
 export default ScreenshotsModal;

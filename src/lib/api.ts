@@ -16,6 +16,7 @@ const ENDPOINTS = {
 // Types for API responses
 export interface UserData {
   username: string;
+  display_name?: string;  // Added display_name as optional
   channel: string | null;
   screen_shared: boolean;
   timestamp: string | null;
@@ -75,7 +76,7 @@ export interface HistoryDay {
 
 export interface UserHistory {
   username: string;
-  display_name: string;
+  display_name?: string;  // Added display_name as optional
   days: HistoryDay[];
 }
 

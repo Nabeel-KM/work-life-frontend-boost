@@ -72,7 +72,7 @@ const UserHistoryModal = memo(({ isOpen, onClose, username }: UserHistoryModalPr
         <DialogHeader>
           <DialogTitle>Activity History</DialogTitle>
           <DialogDescription>
-            Viewing the last 7 days of activity for {history?.display_name || username}
+            Viewing the last 7 days of activity for {history?.username || username}
           </DialogDescription>
         </DialogHeader>
         
