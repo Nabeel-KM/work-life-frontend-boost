@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { api, UserHistory, HistoryDay } from "@/lib/api";
-import { formatDate, formatTime, formatTimeOnly, formatSessionTime } from "@/lib/utils-format";
+import { formatDate, formatTime, formatTimeOnly } from "@/lib/utils-format";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,7 +35,7 @@ const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) 
         })
         .catch(err => {
           console.error('Error fetching history:', err);
-          setError('Failed to load user history');
+          setError('Server error: The API is currently experiencing issues with date handling');
         })
         .finally(() => {
           setIsLoading(false);
@@ -49,7 +49,7 @@ const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) 
         <DialogHeader>
           <DialogTitle>Activity History</DialogTitle>
           <DialogDescription>
-            Viewing the last 7 days of activity for {username}
+            Viewing the last 7 days of activity for {history?.display_name || username}
           </DialogDescription>
         </DialogHeader>
         
@@ -80,18 +80,13 @@ const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) 
                   <TableRow key={index}>
                     <TableCell className="font-medium">{day.date}</TableCell>
                     <TableCell>{formatTime(day.total_active_time * 60)}</TableCell>
-<<<<<<< HEAD
-                    <TableCell>{formatSessionTime(day.total_session_time)}</TableCell>
-                    <TableCell>{formatTime(day.total_idle_time)}</TableCell>
-=======
                     <TableCell>{day.total_session_time.toFixed(1)}h</TableCell>
                     <TableCell>{formatTime(day.total_idle_time * 60)}</TableCell>
->>>>>>> e2a91c5 (Update)
                     <TableCell>{formatTimeOnly(day.first_activity)}</TableCell>
                     <TableCell>{formatTimeOnly(day.last_activity)}</TableCell>
                     <TableCell>
                       {day.most_used_app 
-                        ? `${day.most_used_app} (${formatTime(day.most_used_app_time)})` 
+                        ? `${day.most_used_app} (${formatTime(day.most_used_app_time * 60)})` 
                         : 'N/A'}
                     </TableCell>
                   </TableRow>

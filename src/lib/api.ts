@@ -75,6 +75,7 @@ export interface HistoryDay {
 
 export interface UserHistory {
   username: string;
+  display_name: string;
   days: HistoryDay[];
 }
 

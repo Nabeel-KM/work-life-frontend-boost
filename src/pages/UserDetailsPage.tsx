@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays } from "date-fns";
@@ -8,12 +9,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  formatTime, 
-  formatTimeOnly, 
-  formatDate, 
-  formatSessionTime
-} from "@/lib/utils-format";
+import { formatTime, formatTimeOnly, formatDate } from "@/lib/utils-format";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Separator } from "@/components/ui/separator";
 
@@ -141,7 +137,7 @@ const UserDetailsPage = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Session Time</p>
-                  <p className="text-2xl font-bold">{formatSessionTime(selectedDayData.total_session_time)}</p>
+                  <p className="text-2xl font-bold">{selectedDayData.total_session_time.toFixed(1)}h</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">First Activity</p>
@@ -187,7 +183,7 @@ const UserDetailsPage = () => {
                         </div>
                         <div className="bg-secondary/20 p-4 rounded-md">
                           <div className="text-sm text-muted-foreground">Session Time</div>
-                          <div className="text-2xl font-bold mt-1">{formatSessionTime(day.total_session_time)}</div>
+                          <div className="text-2xl font-bold mt-1">{day.total_session_time.toFixed(1)}h</div>
                         </div>
                         <div className="bg-secondary/20 p-4 rounded-md">
                           <div className="text-sm text-muted-foreground">Most Used App</div>
