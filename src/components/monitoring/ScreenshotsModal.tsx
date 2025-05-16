@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo, useCallback } from "react";
 import { api, Screenshot } from "@/lib/api";
 import { formatTimeOnly } from "@/lib/utils-format";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,43 @@ interface ScreenshotsModalProps {
   date: string;
 }
 
-const ScreenshotsModal = ({ isOpen, onClose, username, date }: ScreenshotsModalProps) => {
+// Memoized screenshot item component
+const ScreenshotItem = memo(({ screenshot, index }: { screenshot: Screenshot; index: number }) => (
+  <div 
+    key={screenshot.key} 
+    className="rounded-md border overflow-hidden flex flex-col"
+  >
+    <a 
+      href={screenshot.url} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="block overflow-hidden h-40"
+    >
+      <img 
+        src={screenshot.url} 
+        alt={`Screenshot ${index + 1}`}
+        className="w-full h-full object-cover transition-transform hover:scale-105"
+        loading="lazy"
+      />
+    </a>
+    <div className="p-2 text-center bg-gray-50 dark:bg-gray-800">
+      <p className="text-xs text-muted-foreground">
+        {formatTimeOnly(screenshot.last_modified)}
+      </p>
+    </div>
+  </div>
+));
+
+ScreenshotItem.displayName = "ScreenshotItem";
+
+const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsModalProps) => {
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (isOpen && username) {
@@ -46,7 +79,7 @@ const ScreenshotsModal = ({ isOpen, onClose, username, date }: ScreenshotsModalP
   }, [isOpen, username, date]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Screenshots</DialogTitle>
@@ -78,29 +111,11 @@ const ScreenshotsModal = ({ isOpen, onClose, username, date }: ScreenshotsModalP
           ) : screenshots.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {screenshots.map((screenshot, index) => (
-                <div 
-                  key={screenshot.key} 
-                  className="rounded-md border overflow-hidden flex flex-col"
-                >
-                  <a 
-                    href={screenshot.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="block overflow-hidden h-40"
-                  >
-                    <img 
-                      src={screenshot.url} 
-                      alt={`Screenshot ${index + 1}`}
-                      className="w-full h-full object-cover transition-transform hover:scale-105"
-                      loading="lazy"
-                    />
-                  </a>
-                  <div className="p-2 text-center bg-gray-50 dark:bg-gray-800">
-                    <p className="text-xs text-muted-foreground">
-                      {formatTimeOnly(screenshot.last_modified)}
-                    </p>
-                  </div>
-                </div>
+                <ScreenshotItem 
+                  key={screenshot.key}
+                  screenshot={screenshot} 
+                  index={index} 
+                />
               ))}
             </div>
           ) : (
@@ -111,11 +126,15 @@ const ScreenshotsModal = ({ isOpen, onClose, username, date }: ScreenshotsModalP
         </div>
         
         <DialogFooter>
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={handleClose}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+});
+
+ScreenshotsModal.displayName = "ScreenshotsModal";
+
+export default ScreenshotsModal;
 
 export default ScreenshotsModal;

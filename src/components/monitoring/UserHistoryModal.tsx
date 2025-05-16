@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo, useCallback } from "react";
 import { api, UserHistory, HistoryDay } from "@/lib/api";
 import { formatDate, formatTime, formatTimeOnly } from "@/lib/utils-format";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,33 @@ interface UserHistoryModalProps {
   username: string;
 }
 
-const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) => {
+// Memoized history row component
+const HistoryRow = memo(({ day }: { day: HistoryDay }) => (
+  <TableRow>
+    <TableCell className="font-medium">{day.date}</TableCell>
+    <TableCell>{formatTime(day.total_active_time)}</TableCell>
+    <TableCell>{day.total_session_time.toFixed(1)}h</TableCell>
+    <TableCell>{formatTime(day.total_idle_time)}</TableCell>
+    <TableCell>{formatTimeOnly(day.first_activity)}</TableCell>
+    <TableCell>{formatTimeOnly(day.last_activity)}</TableCell>
+    <TableCell>
+      {day.most_used_app 
+        ? `${day.most_used_app} (${formatTime(day.most_used_app_time)})` 
+        : 'N/A'}
+    </TableCell>
+  </TableRow>
+));
+
+HistoryRow.displayName = "HistoryRow";
+
+const UserHistoryModal = memo(({ isOpen, onClose, username }: UserHistoryModalProps) => {
   const [history, setHistory] = useState<UserHistory | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (isOpen && username) {
@@ -35,7 +58,7 @@ const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) 
         })
         .catch(err => {
           console.error('Error fetching history:', err);
-          setError('Server error: The API is currently experiencing issues with date handling');
+          setError('Failed to load history data');
         })
         .finally(() => {
           setIsLoading(false);
@@ -44,7 +67,7 @@ const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) 
   }, [isOpen, username]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Activity History</DialogTitle>
@@ -63,36 +86,26 @@ const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) 
               <div className="text-red-500">{error}</div>
             </div>
           ) : history?.days && history.days.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Active Time</TableHead>
-                  <TableHead>Session Time</TableHead>
-                  <TableHead>Idle Time</TableHead>
-                  <TableHead>First Activity</TableHead>
-                  <TableHead>Last Activity</TableHead>
-                  <TableHead>Most Used App</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {history.days.map((day, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{day.date}</TableCell>
-                    <TableCell>{formatTime(day.total_active_time * 60)}</TableCell>
-                    <TableCell>{day.total_session_time.toFixed(1)}h</TableCell>
-                    <TableCell>{formatTime(day.total_idle_time * 60)}</TableCell>
-                    <TableCell>{formatTimeOnly(day.first_activity)}</TableCell>
-                    <TableCell>{formatTimeOnly(day.last_activity)}</TableCell>
-                    <TableCell>
-                      {day.most_used_app 
-                        ? `${day.most_used_app} (${formatTime(day.most_used_app_time * 60)})` 
-                        : 'N/A'}
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Active Time</TableHead>
+                    <TableHead>Session Time</TableHead>
+                    <TableHead>Idle Time</TableHead>
+                    <TableHead>First Activity</TableHead>
+                    <TableHead>Last Activity</TableHead>
+                    <TableHead>Most Used App</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {history.days.map((day, index) => (
+                    <HistoryRow key={`${day.date}-${index}`} day={day} />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <div className="flex justify-center items-center h-40">
               <p className="text-muted-foreground">No history data available</p>
@@ -101,11 +114,15 @@ const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) 
         </div>
         
         <DialogFooter>
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={handleClose}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+});
+
+UserHistoryModal.displayName = "UserHistoryModal";
+
+export default UserHistoryModal;
 
 export default UserHistoryModal;

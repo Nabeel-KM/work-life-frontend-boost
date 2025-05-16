@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { UserData } from "@/lib/api";
 import { formatTimeFromSeconds, formatTimeOnly, formatTime } from "@/lib/utils-format";
@@ -7,39 +7,78 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { History, Image, User } from "lucide-react";
 import UserHistoryModal from "./UserHistoryModal";
+import { cn } from "@/lib/utils";
 
 interface UserCardProps {
   user: UserData;
   onViewScreenshots: (username: string) => void;
 }
 
-const UserCard = ({ user, onViewScreenshots }: UserCardProps) => {
+// Memoized app usage component
+const AppUsageItem = memo(({ app, totalActiveTime }: { 
+  app: { app_name: string; total_time: number }; 
+  totalActiveTime: number 
+}) => (
+  <div key={app.app_name} className="flex items-center justify-between">
+    <span className="text-sm truncate max-w-[70%]">{app.app_name}</span>
+    <div className="flex items-center gap-2">
+      <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-blue-500 rounded-full"
+          style={{ 
+            width: `${Math.min(100, (app.total_time / (totalActiveTime || 1)) * 100)}%` 
+          }}
+        ></div>
+      </div>
+      <span className="text-xs text-muted-foreground">{formatTime(app.total_time)}</span>
+    </div>
+  </div>
+));
+
+AppUsageItem.displayName = "AppUsageItem";
+
+const UserCard = memo(({ user, onViewScreenshots }: UserCardProps) => {
   const [showHistory, setShowHistory] = useState(false);
 
   // Status indicator color
-  const getStatusColor = () => {
+  const statusColor = useMemo(() => {
     if (user.screen_shared) return "bg-green-500";
     if (user.active_app) return "bg-yellow-500";
     return "bg-gray-500";
-  };
+  }, [user.screen_shared, user.active_app]);
 
   // Top apps (limit to 3)
-  const topApps = user.app_usage
-    ?.sort((a, b) => b.total_time - a.total_time)
-    .slice(0, 3);
+  const topApps = useMemo(() => 
+    user.app_usage
+      ?.sort((a, b) => b.total_time - a.total_time)
+      .slice(0, 3),
+    [user.app_usage]
+  );
+
+  const handleHistoryClick = useCallback(() => {
+    setShowHistory(true);
+  }, []);
+
+  const handleHistoryClose = useCallback(() => {
+    setShowHistory(false);
+  }, []);
+
+  const handleScreenshotsClick = useCallback(() => {
+    onViewScreenshots(user.username);
+  }, [onViewScreenshots, user.username]);
 
   return (
-    <Card className={`overflow-hidden ${user.screen_shared ? "border-green-200 dark:border-green-800" : ""}`}>
+    <Card className={cn("overflow-hidden", user.screen_shared && "border-green-200 dark:border-green-800")}>
       <CardContent className="p-0">
         <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-6">
           {/* User info section */}
           <div className="p-4 lg:p-6 md:col-span-2 lg:border-r border-gray-100 dark:border-gray-800">
             <div className="flex items-start gap-3">
-              <div className={`h-3 w-3 rounded-full mt-1.5 ${getStatusColor()}`}></div>
+              <div className={`h-3 w-3 rounded-full mt-1.5 ${statusColor}`}></div>
               <div>
                 <h3 className="font-medium text-lg">
                   <Link to={`/user/${user.username}`} className="hover:underline text-primary">
-                    {user.username}
+                    {user.display_name || user.username}
                   </Link>
                 </h3>
                 
@@ -77,7 +116,7 @@ const UserCard = ({ user, onViewScreenshots }: UserCardProps) => {
                 size="sm" 
                 variant="outline"
                 className="flex items-center gap-1" 
-                onClick={() => setShowHistory(true)}
+                onClick={handleHistoryClick}
               >
                 <History className="h-3.5 w-3.5" />
                 History
@@ -86,7 +125,7 @@ const UserCard = ({ user, onViewScreenshots }: UserCardProps) => {
                 size="sm" 
                 variant="outline"
                 className="flex items-center gap-1"
-                onClick={() => onViewScreenshots(user.username)}
+                onClick={handleScreenshotsClick}
               >
                 <Image className="h-3.5 w-3.5" />
                 Screenshots
@@ -131,20 +170,11 @@ const UserCard = ({ user, onViewScreenshots }: UserCardProps) => {
               {topApps && topApps.length > 0 ? (
                 <div className="space-y-2">
                   {topApps.map((app) => (
-                    <div key={app.app_name} className="flex items-center justify-between">
-                      <span className="text-sm truncate max-w-[70%]">{app.app_name}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-blue-500 rounded-full"
-                            style={{ 
-                              width: `${Math.min(100, (app.total_time / (user.total_active_time || 1)) * 100)}%` 
-                            }}
-                          ></div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">{formatTime(app.total_time)}</span>
-                      </div>
-                    </div>
+                    <AppUsageItem 
+                      key={app.app_name} 
+                      app={app} 
+                      totalActiveTime={user.total_active_time} 
+                    />
                   ))}
                 </div>
               ) : (
@@ -156,13 +186,19 @@ const UserCard = ({ user, onViewScreenshots }: UserCardProps) => {
       </CardContent>
       
       {/* History Modal */}
-      <UserHistoryModal 
-        isOpen={showHistory} 
-        onClose={() => setShowHistory(false)} 
-        username={user.username}
-      />
+      {showHistory && (
+        <UserHistoryModal 
+          isOpen={showHistory} 
+          onClose={handleHistoryClose} 
+          username={user.username}
+        />
+      )}
     </Card>
   );
-};
+});
+
+UserCard.displayName = "UserCard";
+
+export default UserCard;
 
 export default UserCard;
