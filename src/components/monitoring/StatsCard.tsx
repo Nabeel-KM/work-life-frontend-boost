@@ -63,5 +63,3 @@ const StatsCard = memo(({
 StatsCard.displayName = "StatsCard";
 
 export default StatsCard;
-
-export default StatsCard;

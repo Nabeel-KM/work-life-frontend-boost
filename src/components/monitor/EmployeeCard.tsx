@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import StatusBadge from './StatusBadge';
+import { formatTimeOnly, formatMinutesToTime } from '@/lib/utils-time';
 
 export type EmployeeType = {
   id: string;
@@ -54,7 +55,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee }) => {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Last Activity</p>
-            <p>{employee.lastActive}</p>
+            <p>{formatTimeOnly(employee.lastActive)}</p>
           </div>
           {employee.workTime && (
             <div>

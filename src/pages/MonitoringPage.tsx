@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+
+import React, { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Clock, History, Image, User, Settings } from "lucide-react";
+import { Check, Clock, User, Settings } from "lucide-react";
 import { api, UserData } from "@/lib/api";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import UserCard from "@/components/monitoring/UserCard";
@@ -9,7 +9,7 @@ import StatsCard from "@/components/monitoring/StatsCard";
 import ScreenshotsModal from "@/components/monitoring/ScreenshotsModal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatTime } from "@/lib/utils-format";
+import { formatHours } from "@/lib/utils-time";
 import { useQuery } from "@tanstack/react-query";
 
 const MonitoringPage = () => {
@@ -99,10 +99,9 @@ const MonitoringPage = () => {
         />
         <StatsCard 
           title="Total Working Hours"
-          value={totalWorkingTime.toFixed(1)}
+          value={formatHours(totalWorkingTime)}
           description="Today's progress"
           icon={<Settings className="h-5 w-5" />}
-          suffix="h"
           className="bg-blue-50 dark:bg-blue-900/20"
         />
       </div>
