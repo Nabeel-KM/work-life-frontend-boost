@@ -80,8 +80,13 @@ const UserHistoryModal = ({ isOpen, onClose, username }: UserHistoryModalProps) 
                   <TableRow key={index}>
                     <TableCell className="font-medium">{day.date}</TableCell>
                     <TableCell>{formatTime(day.total_active_time * 60)}</TableCell>
+<<<<<<< HEAD
                     <TableCell>{formatSessionTime(day.total_session_time)}</TableCell>
                     <TableCell>{formatTime(day.total_idle_time)}</TableCell>
+=======
+                    <TableCell>{day.total_session_time.toFixed(1)}h</TableCell>
+                    <TableCell>{formatTime(day.total_idle_time * 60)}</TableCell>
+>>>>>>> e2a91c5 (Update)
                     <TableCell>{formatTimeOnly(day.first_activity)}</TableCell>
                     <TableCell>{formatTimeOnly(day.last_activity)}</TableCell>
                     <TableCell>
