@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, memo, useCallback } from "react";
 import { api, UserHistory, HistoryDay } from "@/lib/api";
-import { formatHours, formatTimeOnly } from "@/lib/utils-time";
+import { formatMinutesToTime, formatTimeOnly } from "@/lib/utils-time";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,14 +23,14 @@ interface UserHistoryModalProps {
 const HistoryRow = memo(({ day }: { day: HistoryDay }) => (
   <TableRow>
     <TableCell className="font-medium">{day.date}</TableCell>
-    <TableCell>{formatHours(day.total_active_time)}</TableCell>
-    <TableCell>{formatHours(day.total_session_time)}</TableCell>
-    <TableCell>{formatHours(day.total_idle_time)}</TableCell>
+    <TableCell>{formatMinutesToTime(day.total_active_time)}</TableCell>
+    <TableCell>{day.total_session_time.toFixed(1)}h</TableCell>
+    <TableCell>{formatMinutesToTime(day.total_idle_time)}</TableCell>
     <TableCell>{formatTimeOnly(day.first_activity)}</TableCell>
     <TableCell>{formatTimeOnly(day.last_activity)}</TableCell>
     <TableCell>
       {day.most_used_app 
-        ? `${day.most_used_app} (${formatHours(day.most_used_app_time)})` 
+        ? `${day.most_used_app} (${formatMinutesToTime(day.most_used_app_time)})` 
         : 'N/A'}
     </TableCell>
   </TableRow>
