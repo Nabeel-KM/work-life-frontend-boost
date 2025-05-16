@@ -1,8 +1,7 @@
-
 import React, { useState, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { UserData } from "@/lib/api";
-import { formatSecondsToTime, formatTimeOnly, formatMinutesToTime, formatHours } from "@/lib/utils-time";
+import { formatSecondsToTime, formatTimeOnly, formatHours } from "@/lib/utils-time";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +30,7 @@ const AppUsageItem = memo(({ app, totalActiveTime }: {
           }}
         ></div>
       </div>
-      <span className="text-xs text-muted-foreground">{formatMinutesToTime(app.total_time)}</span>
+      <span className="text-xs text-muted-foreground">{formatHours(app.total_time)}</span>
     </div>
   </div>
 ));
@@ -149,7 +148,7 @@ const UserCard = memo(({ user, onViewScreenshots }: UserCardProps) => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Active Time</h4>
-                <p className="text-xl font-bold mt-1">{formatMinutesToTime(user.total_active_time)}</p>
+                <p className="text-xl font-bold mt-1">{formatHours(user.total_active_time)}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Session Time</h4>
@@ -157,7 +156,7 @@ const UserCard = memo(({ user, onViewScreenshots }: UserCardProps) => {
               </div>
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Idle Time</h4>
-                <p className="text-xl font-bold mt-1">{formatMinutesToTime(user.total_idle_time)}</p>
+                <p className="text-xl font-bold mt-1">{formatHours(user.total_idle_time)}</p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Screen Share</h4>
