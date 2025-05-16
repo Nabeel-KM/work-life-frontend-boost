@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays } from "date-fns";
@@ -78,6 +79,7 @@ const UserDetailsPage = () => {
 
   // Find day data for the selected date
   const selectedDayData = userHistory?.days?.find(day => day.date === selectedDate);
+  const displayName = userHistory?.display_name || username;
 
   return (
     <DashboardLayout>
@@ -92,7 +94,7 @@ const UserDetailsPage = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{username || "User"}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{displayName}</h1>
             <p className="text-muted-foreground">Activity and monitoring details</p>
           </div>
         </div>

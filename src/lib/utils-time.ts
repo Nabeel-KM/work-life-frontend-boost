@@ -50,10 +50,10 @@ export function formatHours(hours: number): string {
   const wholeHours = Math.floor(hours);
   const minutes = Math.round((hours - wholeHours) * 60);
   
-  if (minutes > 0) {
-    return `${wholeHours}h ${minutes}m`;
+  if (wholeHours > 0) {
+    return `${wholeHours}h${minutes > 0 ? ` ${minutes}m` : ''}`;
   }
-  return `${wholeHours}h`;
+  return minutes > 0 ? `${minutes}m` : '0h';
 }
 
 /**
