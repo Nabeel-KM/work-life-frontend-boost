@@ -23,14 +23,14 @@ interface UserHistoryModalProps {
 const HistoryRow = memo(({ day }: { day: HistoryDay }) => (
   <TableRow>
     <TableCell className="font-medium">{day.date}</TableCell>
-    <TableCell>{formatMinutesToTime(day.total_active_time * 60)}</TableCell>
+    <TableCell>{formatHours(day.total_active_time)}</TableCell>
     <TableCell>{day.total_session_time.toFixed(1)}h</TableCell>
-    <TableCell>{formatMinutesToTime(day.total_idle_time * 60)}</TableCell>
+    <TableCell>{formatHours(day.total_idle_time)}</TableCell>
     <TableCell>{formatTimeOnly(day.first_activity)}</TableCell>
     <TableCell>{formatTimeOnly(day.last_activity)}</TableCell>
     <TableCell>
       {day.most_used_app 
-        ? `${day.most_used_app} (${formatMinutesToTime(day.most_used_app_time * 60)})` 
+        ? `${day.most_used_app} (${formatHours(day.most_used_app_time)})` 
         : 'N/A'}
     </TableCell>
   </TableRow>

@@ -191,7 +191,7 @@ const UserDetailsPage = () => {
                           <div className="text-xl font-bold mt-1">{day.most_used_app || "N/A"}</div>
                           {day.most_used_app_time > 0 && (
                             <div className="text-sm text-muted-foreground">
-                              {formatMinutesToTime(day.most_used_app_time * 60)}
+                              {formatHours(day.most_used_app_time)}
                             </div>
                           )}
                         </div>
@@ -302,7 +302,7 @@ const UserDetailsPage = () => {
                             ></div>
                           </div>
                           <div className="w-20 text-right text-sm text-muted-foreground">
-                            {formatMinutesToTime(app.total_time * 60)}
+                            {formatHours(app.total_time)}
                           </div>
                         </div>
                       </div>
