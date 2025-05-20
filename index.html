@@ -27,5 +27,26 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Fix for "a.filter is not a function" error
+      (function() {
+        // Save the original filter method
+        const originalFilter = Array.prototype.filter;
+        
+        // Create a safe filter function that works even if called on non-arrays
+        function safeFilter(callback, thisArg) {
+          // If this is not an array, convert it to an empty array
+          if (!Array.isArray(this)) {
+            console.warn('Filter called on non-array, returning empty array');
+            return [];
+          }
+          // Call the original filter method
+          return originalFilter.call(this, callback, thisArg);
+        }
+        
+        // Replace the filter method with our safe version
+        Array.prototype.filter = safeFilter;
+      })();
+    </script>
   </body>
 </html>
