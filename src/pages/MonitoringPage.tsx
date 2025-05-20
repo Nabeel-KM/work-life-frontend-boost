@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Check, Clock, User, Settings } from "lucide-react";
@@ -22,7 +21,7 @@ const MonitoringPage = () => {
   const [historyUser, setHistoryUser] = useState<string | null>(null);
 
   // Fetch dashboard data
-  const { data: responseData, isLoading, error, refetch } = useQuery({
+  const { data: users, isLoading, error, refetch } = useQuery({
     queryKey: ["dashboard"],
     queryFn: api.fetchDashboard,
     refetchInterval: 30000, // Refetch every 30 seconds
@@ -37,19 +36,15 @@ const MonitoringPage = () => {
     });
   };
 
-  // Extract the actual data array from the response
-  // The API returns { data: [...] } so we need to handle that structure
-  const data = responseData?.data || [];
-
-  // Ensure users is always an array before using array methods
-  const users: UserData[] = Array.isArray(data) ? data : [];
+  // Ensure users is always an array
+  const safeUsers: UserData[] = Array.isArray(users) ? users : [];
   
   // Stats calculations with safe array handling
-  const activeUsers = Array.isArray(users) ? users.filter(user => user?.screen_shared || user?.active_app) : [];
-  const idleUsers = Array.isArray(users) ? users.filter(user => !user?.screen_shared && user?.total_idle_time > 0) : [];
-  const offlineUsers = Array.isArray(users) ? users.filter(user => !user?.screen_shared && !user?.active_app) : [];
+  const activeUsers = safeUsers.filter(user => user?.screen_shared || user?.active_app);
+  const idleUsers = safeUsers.filter(user => !user?.screen_shared && user?.total_idle_time > 0);
+  const offlineUsers = safeUsers.filter(user => !user?.screen_shared && !user?.active_app);
   
-  const totalWorkingTime = Array.isArray(users) ? users.reduce((total, user) => total + (user?.total_session_time || 0), 0) : 0;
+  const totalWorkingTime = safeUsers.reduce((total, user) => total + (user?.total_session_time || 0), 0);
   
   // Handle screenshot view
   const handleViewScreenshots = (username: string) => {
@@ -94,7 +89,7 @@ const MonitoringPage = () => {
           value={activeUsers.length.toString()}
           description="Currently working"
           icon={<Check className="h-5 w-5" />}
-          trend={users.length ? Math.round((activeUsers.length / users.length) * 100) : 0}
+          trend={safeUsers.length ? Math.round((activeUsers.length / safeUsers.length) * 100) : 0}
           className="bg-green-50 dark:bg-green-900/20"
         />
         <StatsCard 
@@ -102,7 +97,7 @@ const MonitoringPage = () => {
           value={idleUsers.length.toString()}
           description="Away from keyboard"
           icon={<Clock className="h-5 w-5" />}
-          trend={users.length ? Math.round((idleUsers.length / users.length) * 100) : 0}
+          trend={safeUsers.length ? Math.round((idleUsers.length / safeUsers.length) * 100) : 0}
           className="bg-yellow-50 dark:bg-yellow-900/20"
         />
         <StatsCard 
@@ -110,7 +105,7 @@ const MonitoringPage = () => {
           value={offlineUsers.length.toString()}
           description="Not currently working"
           icon={<User className="h-5 w-5" />}
-          trend={users.length ? Math.round((offlineUsers.length / users.length) * 100) : 0}
+          trend={safeUsers.length ? Math.round((offlineUsers.length / safeUsers.length) * 100) : 0}
           className="bg-gray-50 dark:bg-gray-900/20"
         />
         <StatsCard 
@@ -126,7 +121,7 @@ const MonitoringPage = () => {
         <CardHeader className="pb-2">
           <CardTitle>Team Activity</CardTitle>
           <CardDescription>
-            {isLoading ? "Loading employee data..." : `Monitoring ${users.length} employees`}
+            {isLoading ? "Loading employee data..." : `Monitoring ${safeUsers.length} employees`}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -135,8 +130,8 @@ const MonitoringPage = () => {
               <div className="flex justify-center items-center py-12">
                 <div className="animate-pulse">Loading employee data...</div>
               </div>
-            ) : users.length > 0 ? (
-              users.map((user) => (
+            ) : safeUsers.length > 0 ? (
+              safeUsers.map((user) => (
                 <UserCard
                   key={user.username}
                   user={user}
