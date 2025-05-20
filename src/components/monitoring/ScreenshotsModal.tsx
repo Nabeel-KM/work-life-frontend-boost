@@ -66,7 +66,8 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
 
       api.fetchScreenshots(username, date)
         .then(data => {
-          setScreenshots(data);
+          console.log("Modal screenshots data:", data);
+          setScreenshots(Array.isArray(data) ? data : []);
         })
         .catch(err => {
           console.error('Error fetching screenshots:', err);

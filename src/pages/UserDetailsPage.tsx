@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays } from "date-fns";
@@ -39,6 +40,7 @@ const UserDetailsPage = () => {
     setIsLoadingHistory(true);
     api.fetchHistory(username, 7)
       .then(data => {
+        console.log("History data received:", data);
         if (!data) {
           throw new Error('No history data returned');
         }
@@ -64,6 +66,7 @@ const UserDetailsPage = () => {
     setIsLoadingScreenshots(true);
     api.fetchScreenshots(username, selectedDate)
       .then(data => {
+        console.log("Screenshots data received:", data);
         // Ensure screenshots is an array
         setScreenshots(Array.isArray(data) ? data : []);
       })
@@ -91,6 +94,14 @@ const UserDetailsPage = () => {
   const dayAppUsage = selectedDayData?.app_usage && Array.isArray(selectedDayData.app_usage) 
     ? selectedDayData.app_usage 
     : [];
+
+  console.log("UserDetailsPage render:", { 
+    userHistory, 
+    historyDays, 
+    selectedDayData, 
+    screenshots,
+    dayAppUsage
+  });
 
   return (
     <DashboardLayout>
