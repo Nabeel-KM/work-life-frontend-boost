@@ -22,7 +22,7 @@ const MonitoringPage = () => {
   const [historyUser, setHistoryUser] = useState<string | null>(null);
 
   // Fetch dashboard data
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data: responseData, isLoading, error, refetch } = useQuery({
     queryKey: ["dashboard"],
     queryFn: api.fetchDashboard,
     refetchInterval: 30000, // Refetch every 30 seconds
@@ -37,15 +37,19 @@ const MonitoringPage = () => {
     });
   };
 
-  // Ensure data is always an array before using array methods
+  // Extract the actual data array from the response
+  // The API returns { data: [...] } so we need to handle that structure
+  const data = responseData?.data || [];
+
+  // Ensure users is always an array before using array methods
   const users: UserData[] = Array.isArray(data) ? data : [];
   
   // Stats calculations with safe array handling
-  const activeUsers = users.filter(user => user.screen_shared || user.active_app);
-  const idleUsers = users.filter(user => !user.screen_shared && user.total_idle_time > 0);
-  const offlineUsers = users.filter(user => !user.screen_shared && !user.active_app);
+  const activeUsers = Array.isArray(users) ? users.filter(user => user?.screen_shared || user?.active_app) : [];
+  const idleUsers = Array.isArray(users) ? users.filter(user => !user?.screen_shared && user?.total_idle_time > 0) : [];
+  const offlineUsers = Array.isArray(users) ? users.filter(user => !user?.screen_shared && !user?.active_app) : [];
   
-  const totalWorkingTime = users.reduce((total, user) => total + (user.total_session_time || 0), 0);
+  const totalWorkingTime = Array.isArray(users) ? users.reduce((total, user) => total + (user?.total_session_time || 0), 0) : 0;
   
   // Handle screenshot view
   const handleViewScreenshots = (username: string) => {

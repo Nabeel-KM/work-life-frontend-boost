@@ -16,7 +16,7 @@ const ENDPOINTS = {
 // Types for API responses
 export interface UserData {
   username: string;
-  display_name?: string;  // Added display_name as optional
+  display_name?: string;  
   channel: string | null;
   screen_shared: boolean;
   timestamp: string | null;
@@ -76,16 +76,21 @@ export interface HistoryDay {
 
 export interface UserHistory {
   username: string;
-  display_name?: string;  // Added display_name as optional
+  display_name?: string;
   days: HistoryDay[];
+}
+
+// API response interfaces to handle nesting
+interface ApiResponse<T> {
+  data: T;
 }
 
 // API functions
 export const api = {
   // Get dashboard data
-  fetchDashboard: async (): Promise<UserData[]> => {
+  fetchDashboard: async (): Promise<ApiResponse<UserData[]>> => {
     try {
-      const response = await axios.get(ENDPOINTS.dashboard, {
+      const response = await axios.get<ApiResponse<UserData[]>>(ENDPOINTS.dashboard, {
         headers: { 'Cache-Control': 'no-cache' },
         params: { t: Date.now() } // Prevent caching
       });
@@ -99,10 +104,11 @@ export const api = {
   // Get history data for a user
   fetchHistory: async (username: string, days: number = 7): Promise<UserHistory> => {
     try {
-      const response = await axios.get(ENDPOINTS.history, {
+      const response = await axios.get<ApiResponse<UserHistory[]>>(ENDPOINTS.history, {
         params: { username, days }
       });
-      return response.data[0];
+      // Return the first item in the array if it exists
+      return response.data.data?.[0] || { username, days: [] };
     } catch (error) {
       console.error(`Failed to fetch history for ${username}:`, error);
       throw error;
@@ -112,10 +118,10 @@ export const api = {
   // Get screenshots for a user and date
   fetchScreenshots: async (username: string, date: string): Promise<Screenshot[]> => {
     try {
-      const response = await axios.get(ENDPOINTS.screenshots, {
+      const response = await axios.get<ApiResponse<{ screenshots: Screenshot[] }>>(ENDPOINTS.screenshots, {
         params: { username, date }
       });
-      return response.data.screenshots || [];
+      return response.data.data?.screenshots || [];
     } catch (error) {
       console.error(`Failed to fetch screenshots for ${username}:`, error);
       throw error;
