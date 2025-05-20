@@ -1,17 +1,39 @@
-
 import axios from "axios";
+import { format } from "date-fns";
 
-// Base URL for all API requests
-const BASE_URL = "https://api-wfh.kryptomind.net/api";
+// Create axios instance with default config
+const axiosInstance = axios.create({
+  baseURL: "https://api-wfh.kryptomind.net/api",
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache'
+  }
+});
 
-// API endpoints
-const ENDPOINTS = {
-  dashboard: `${BASE_URL}/dashboard`,
-  history: `${BASE_URL}/history`,
-  screenshots: `${BASE_URL}/screenshots`,
-  sessionStatus: `${BASE_URL}/session_status`,
-  verifyData: `${BASE_URL}/verify_data`,
-};
+// Add request interceptor for logging
+axiosInstance.interceptors.request.use(
+  (config) => {
+    console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, config.params || {});
+    return config;
+  },
+  (error) => {
+    console.error('❌ Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for error handling
+axiosInstance.interceptors.response.use(
+  (response) => {
+    console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
+    return response;
+  },
+  (error) => {
+    console.error('❌ Response error:', error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
 
 // Types for API responses
 export interface UserData {
@@ -97,29 +119,23 @@ interface ScreenshotResponse {
 
 // API functions
 export const api = {
-  // Get dashboard data
-  fetchDashboard: async (): Promise<UserData[]> => {
+  fetchDashboard: async () => {
     try {
-      const response = await axios.get<ApiResponse<UserData[]>>(ENDPOINTS.dashboard, {
-        headers: { 'Cache-Control': 'no-cache' },
-        params: { t: Date.now() } // Prevent caching
+      const response = await axiosInstance.get('/dashboard', {
+        params: { t: Date.now() }
       });
-      console.log("Dashboard API response:", response.data);
       return response.data.data || [];
     } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
+      console.error("Failed to fetch dashboard:", error);
       throw error;
     }
   },
 
-  // Get history data for a user
-  fetchHistory: async (username: string, days: number = 7): Promise<UserHistory> => {
+  fetchHistory: async (username: string, days: number = 7) => {
     try {
-      const response = await axios.get<UserHistory[]>(ENDPOINTS.history, {
+      const response = await axiosInstance.get('/history', {
         params: { username, days }
       });
-      console.log("History API response:", response.data);
-      // Return the first item in the array if it exists
       return response.data[0] || { username, days: [] };
     } catch (error) {
       console.error(`Failed to fetch history for ${username}:`, error);
@@ -127,13 +143,11 @@ export const api = {
     }
   },
 
-  // Get screenshots for a user and date
-  fetchScreenshots: async (username: string, date: string): Promise<Screenshot[]> => {
+  fetchScreenshots: async (username: string, date: string) => {
     try {
-      const response = await axios.get<ScreenshotResponse>(ENDPOINTS.screenshots, {
+      const response = await axiosInstance.get('/screenshots', {
         params: { username, date }
       });
-      console.log("Screenshots API response:", response.data);
       return response.data.screenshots || [];
     } catch (error) {
       console.error(`Failed to fetch screenshots for ${username}:`, error);
