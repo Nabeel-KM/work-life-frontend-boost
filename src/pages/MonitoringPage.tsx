@@ -34,12 +34,15 @@ const MonitoringPage = () => {
     });
   };
 
-  // Stats calculations
-  const activeUsers = users?.filter(user => user.screen_shared || user.active_app) || [];
-  const idleUsers = users?.filter(user => !user.screen_shared && user.total_idle_time > 0) || [];
-  const offlineUsers = users?.filter(user => !user.screen_shared && !user.active_app) || [];
+  // Ensure users is always an array before filtering
+  const usersArray = Array.isArray(users) ? users : [];
   
-  const totalWorkingTime = users?.reduce((total, user) => total + (user.total_session_time || 0), 0) || 0;
+  // Stats calculations with safe array handling
+  const activeUsers = usersArray.filter(user => user.screen_shared || user.active_app);
+  const idleUsers = usersArray.filter(user => !user.screen_shared && user.total_idle_time > 0);
+  const offlineUsers = usersArray.filter(user => !user.screen_shared && !user.active_app);
+  
+  const totalWorkingTime = usersArray.reduce((total, user) => total + (user.total_session_time || 0), 0);
   
   // Handle screenshot view
   const handleViewScreenshots = (username: string) => {
@@ -78,7 +81,7 @@ const MonitoringPage = () => {
           value={activeUsers.length.toString()}
           description="Currently working"
           icon={<Check className="h-5 w-5" />}
-          trend={users?.length ? Math.round((activeUsers.length / users.length) * 100) : 0}
+          trend={usersArray.length ? Math.round((activeUsers.length / usersArray.length) * 100) : 0}
           className="bg-green-50 dark:bg-green-900/20"
         />
         <StatsCard 
@@ -86,7 +89,7 @@ const MonitoringPage = () => {
           value={idleUsers.length.toString()}
           description="Away from keyboard"
           icon={<Clock className="h-5 w-5" />}
-          trend={users?.length ? Math.round((idleUsers.length / users.length) * 100) : 0}
+          trend={usersArray.length ? Math.round((idleUsers.length / usersArray.length) * 100) : 0}
           className="bg-yellow-50 dark:bg-yellow-900/20"
         />
         <StatsCard 
@@ -94,7 +97,7 @@ const MonitoringPage = () => {
           value={offlineUsers.length.toString()}
           description="Not currently working"
           icon={<User className="h-5 w-5" />}
-          trend={users?.length ? Math.round((offlineUsers.length / users.length) * 100) : 0}
+          trend={usersArray.length ? Math.round((offlineUsers.length / usersArray.length) * 100) : 0}
           className="bg-gray-50 dark:bg-gray-900/20"
         />
         <StatsCard 
@@ -110,7 +113,7 @@ const MonitoringPage = () => {
         <CardHeader className="pb-2">
           <CardTitle>Team Activity</CardTitle>
           <CardDescription>
-            {isLoading ? "Loading employee data..." : `Monitoring ${users?.length || 0} employees`}
+            {isLoading ? "Loading employee data..." : `Monitoring ${usersArray.length} employees`}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -119,8 +122,8 @@ const MonitoringPage = () => {
               <div className="flex justify-center items-center py-12">
                 <div className="animate-pulse">Loading employee data...</div>
               </div>
-            ) : users && users.length > 0 ? (
-              users.map((user) => (
+            ) : usersArray.length > 0 ? (
+              usersArray.map((user) => (
                 <UserCard
                   key={user.username}
                   user={user}

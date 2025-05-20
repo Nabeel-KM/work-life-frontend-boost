@@ -62,7 +62,8 @@ const UserDetailsPage = () => {
     setIsLoadingScreenshots(true);
     api.fetchScreenshots(username, selectedDate)
       .then(data => {
-        setScreenshots(data);
+        // Ensure screenshots is an array
+        setScreenshots(Array.isArray(data) ? data : []);
       })
       .catch(error => {
         console.error("Failed to fetch screenshots:", error);
@@ -77,9 +78,17 @@ const UserDetailsPage = () => {
       });
   }, [username, selectedDate, tabValue, toast]);
 
+  // Make sure userHistory.days is an array
+  const historyDays = userHistory?.days && Array.isArray(userHistory.days) ? userHistory.days : [];
+  
   // Find day data for the selected date
-  const selectedDayData = userHistory?.days?.find(day => day.date === selectedDate);
+  const selectedDayData = historyDays.find(day => day.date === selectedDate);
   const displayName = userHistory?.display_name || username;
+
+  // Ensure app_usage is always an array when accessed
+  const dayAppUsage = selectedDayData?.app_usage && Array.isArray(selectedDayData.app_usage) 
+    ? selectedDayData.app_usage 
+    : [];
 
   return (
     <DashboardLayout>
@@ -172,9 +181,9 @@ const UserDetailsPage = () => {
                 <div className="flex justify-center py-12">
                   <div className="animate-pulse">Loading history data...</div>
                 </div>
-              ) : userHistory?.days && userHistory.days.length > 0 ? (
+              ) : historyDays.length > 0 ? (
                 <div className="grid gap-6">
-                  {userHistory.days.map((day, index) => (
+                  {historyDays.map((day, index) => (
                     <div key={index} className="flex flex-col">
                       <div className="font-medium text-lg mb-2">{day.date}</div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -208,7 +217,7 @@ const UserDetailsPage = () => {
                           View Screenshots
                         </Button>
                       </div>
-                      {index < userHistory.days.length - 1 && <Separator className="my-6" />}
+                      {index < historyDays.length - 1 && <Separator className="my-6" />}
                     </div>
                   ))}
                 </div>
@@ -285,9 +294,9 @@ const UserDetailsPage = () => {
                 <div className="text-center py-12">
                   <p className="text-muted-foreground">No application data available for this date</p>
                 </div>
-              ) : selectedDayData.app_usage && selectedDayData.app_usage.length > 0 ? (
+              ) : dayAppUsage.length > 0 ? (
                 <div className="space-y-4">
-                  {selectedDayData.app_usage
+                  {dayAppUsage
                     .sort((a, b) => b.total_time - a.total_time)
                     .map((app, index) => (
                       <div key={index} className="flex items-center justify-between">

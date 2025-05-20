@@ -48,12 +48,15 @@ const UserCard = memo(({ user, onViewScreenshots }: UserCardProps) => {
     return "bg-gray-500";
   }, [user.screen_shared, user.active_app]);
 
+  // Ensure app_usage is always an array before sorting
+  const appUsage = Array.isArray(user.app_usage) ? user.app_usage : [];
+  
   // Top apps (limit to 3)
   const topApps = useMemo(() => 
-    user.app_usage
-      ?.sort((a, b) => b.total_time - a.total_time)
+    appUsage
+      .sort((a, b) => b.total_time - a.total_time)
       .slice(0, 3),
-    [user.app_usage]
+    [appUsage]
   );
 
   const handleHistoryClick = useCallback(() => {

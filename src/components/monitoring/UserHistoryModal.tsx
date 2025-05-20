@@ -66,6 +66,9 @@ const UserHistoryModal = memo(({ isOpen, onClose, username }: UserHistoryModalPr
     }
   }, [isOpen, username]);
 
+  // Ensure history.days is always an array
+  const historyDays = history?.days && Array.isArray(history.days) ? history.days : [];
+
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -85,7 +88,7 @@ const UserHistoryModal = memo(({ isOpen, onClose, username }: UserHistoryModalPr
             <div className="flex justify-center items-center h-40">
               <div className="text-red-500">{error}</div>
             </div>
-          ) : history?.days && history.days.length > 0 ? (
+          ) : historyDays.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -100,7 +103,7 @@ const UserHistoryModal = memo(({ isOpen, onClose, username }: UserHistoryModalPr
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {history.days.map((day, index) => (
+                  {historyDays.map((day, index) => (
                     <HistoryRow key={`${day.date}-${index}`} day={day} />
                   ))}
                 </TableBody>
