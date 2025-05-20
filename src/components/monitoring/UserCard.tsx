@@ -7,12 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { History, Image, User } from "lucide-react";
-import UserHistoryModal from "./UserHistoryModal";
 import { cn } from "@/lib/utils";
 
 interface UserCardProps {
   user: UserData;
   onViewScreenshots: (username: string) => void;
+  onViewHistory: (username: string) => void;
 }
 
 // Memoized app usage component
@@ -38,9 +38,7 @@ const AppUsageItem = memo(({ app, totalActiveTime }: {
 
 AppUsageItem.displayName = "AppUsageItem";
 
-const UserCard = memo(({ user, onViewScreenshots }: UserCardProps) => {
-  const [showHistory, setShowHistory] = useState(false);
-
+const UserCard = memo(({ user, onViewScreenshots, onViewHistory }: UserCardProps) => {
   // Status indicator color
   const statusColor = useMemo(() => {
     if (user.screen_shared) return "bg-green-500";
@@ -60,12 +58,8 @@ const UserCard = memo(({ user, onViewScreenshots }: UserCardProps) => {
   );
 
   const handleHistoryClick = useCallback(() => {
-    setShowHistory(true);
-  }, []);
-
-  const handleHistoryClose = useCallback(() => {
-    setShowHistory(false);
-  }, []);
+    onViewHistory(user.username);
+  }, [onViewHistory, user.username]);
 
   const handleScreenshotsClick = useCallback(() => {
     onViewScreenshots(user.username);
@@ -188,15 +182,6 @@ const UserCard = memo(({ user, onViewScreenshots }: UserCardProps) => {
           </div>
         </div>
       </CardContent>
-      
-      {/* History Modal */}
-      {showHistory && (
-        <UserHistoryModal 
-          isOpen={showHistory} 
-          onClose={handleHistoryClose} 
-          username={user.username}
-        />
-      )}
     </Card>
   );
 });

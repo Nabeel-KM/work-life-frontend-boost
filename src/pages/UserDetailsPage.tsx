@@ -40,6 +40,9 @@ const UserDetailsPage = () => {
     setIsLoadingHistory(true);
     api.fetchHistory(username, 7)
       .then(data => {
+        if (!data) {
+          throw new Error('No history data returned');
+        }
         setUserHistory(data);
       })
       .catch(error => {

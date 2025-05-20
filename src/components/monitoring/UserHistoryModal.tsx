@@ -54,6 +54,9 @@ const UserHistoryModal = memo(({ isOpen, onClose, username }: UserHistoryModalPr
 
       api.fetchHistory(username, 7)
         .then(data => {
+          if (!data) {
+            throw new Error('No history data returned');
+          }
           setHistory(data);
         })
         .catch(err => {
