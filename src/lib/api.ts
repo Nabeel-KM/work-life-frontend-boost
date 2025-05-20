@@ -58,7 +58,10 @@ export interface AppSummary {
 
 export interface Screenshot {
   url: string;
+  thumbnail_url?: string;
   key: string;
+  timestamp?: string;
+  size?: number;
   last_modified: string;
 }
 
@@ -85,16 +88,24 @@ interface ApiResponse<T> {
   data: T;
 }
 
+interface ScreenshotResponse {
+  screenshots: Screenshot[];
+  count: number;
+  username: string;
+  date: string;
+}
+
 // API functions
 export const api = {
   // Get dashboard data
-  fetchDashboard: async (): Promise<ApiResponse<UserData[]>> => {
+  fetchDashboard: async (): Promise<UserData[]> => {
     try {
       const response = await axios.get<ApiResponse<UserData[]>>(ENDPOINTS.dashboard, {
         headers: { 'Cache-Control': 'no-cache' },
         params: { t: Date.now() } // Prevent caching
       });
-      return response.data;
+      console.log("Dashboard API response:", response.data);
+      return response.data.data || [];
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
       throw error;
@@ -104,11 +115,12 @@ export const api = {
   // Get history data for a user
   fetchHistory: async (username: string, days: number = 7): Promise<UserHistory> => {
     try {
-      const response = await axios.get<ApiResponse<UserHistory[]>>(ENDPOINTS.history, {
+      const response = await axios.get<UserHistory[]>(ENDPOINTS.history, {
         params: { username, days }
       });
+      console.log("History API response:", response.data);
       // Return the first item in the array if it exists
-      return response.data.data?.[0] || { username, days: [] };
+      return response.data[0] || { username, days: [] };
     } catch (error) {
       console.error(`Failed to fetch history for ${username}:`, error);
       throw error;
@@ -118,10 +130,11 @@ export const api = {
   // Get screenshots for a user and date
   fetchScreenshots: async (username: string, date: string): Promise<Screenshot[]> => {
     try {
-      const response = await axios.get<ApiResponse<{ screenshots: Screenshot[] }>>(ENDPOINTS.screenshots, {
+      const response = await axios.get<ScreenshotResponse>(ENDPOINTS.screenshots, {
         params: { username, date }
       });
-      return response.data.data?.screenshots || [];
+      console.log("Screenshots API response:", response.data);
+      return response.data.screenshots || [];
     } catch (error) {
       console.error(`Failed to fetch screenshots for ${username}:`, error);
       throw error;
