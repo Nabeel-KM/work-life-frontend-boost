@@ -1,7 +1,5 @@
-
 import axios from "axios";
 import { format } from "date-fns";
-import { DOMPurify } from "./utils-security";
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
@@ -13,21 +11,10 @@ const axiosInstance = axios.create({
   }
 });
 
-// Add request interceptor for logging and security
+// Add request interceptor for logging
 axiosInstance.interceptors.request.use(
   (config) => {
     console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, config.params || {});
-    
-    // Sanitize URL parameters for security
-    if (config.params) {
-      Object.keys(config.params).forEach(key => {
-        if (typeof config.params[key] === 'string') {
-          // Basic sanitization for string parameters
-          config.params[key] = DOMPurify.sanitize(config.params[key]);
-        }
-      });
-    }
-    
     return config;
   },
   (error) => {
@@ -36,7 +23,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling and data sanitization
+// Add response interceptor for error handling
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
@@ -118,174 +105,53 @@ export interface UserHistory {
   days: HistoryDay[];
 }
 
-// Mock data for offline development or when API is unavailable
-const mockData = {
-  dashboard: [
-    {
-      username: "user1",
-      display_name: "John Doe",
-      channel: "Development",
-      screen_shared: true,
-      timestamp: new Date().toISOString(),
-      active_app: "Visual Studio Code",
-      active_apps: ["Visual Studio Code", "Chrome", "Slack"],
-      screen_share_time: 3600,
-      total_idle_time: 300,
-      total_active_time: 420,
-      total_session_time: 8.5,
-      duty_start_time: new Date().toISOString(),
-      duty_end_time: null,
-      app_usage: [
-        { app_name: "Visual Studio Code", total_time: 180 },
-        { app_name: "Chrome", total_time: 120 },
-        { app_name: "Slack", total_time: 60 }
-      ],
-      most_used_app: "Visual Studio Code",
-      most_used_app_time: 180,
-      daily_summaries: []
-    },
-    {
-      username: "user2",
-      display_name: "Jane Smith",
-      channel: "Design",
-      screen_shared: false,
-      timestamp: new Date().toISOString(),
-      active_app: "Figma",
-      active_apps: ["Figma", "Slack"],
-      screen_share_time: 0,
-      total_idle_time: 600,
-      total_active_time: 360,
-      total_session_time: 7.2,
-      duty_start_time: new Date().toISOString(),
-      duty_end_time: null,
-      app_usage: [
-        { app_name: "Figma", total_time: 240 },
-        { app_name: "Slack", total_time: 120 }
-      ],
-      most_used_app: "Figma",
-      most_used_app_time: 240,
-      daily_summaries: []
-    },
-    {
-      username: "user3",
-      display_name: "Alex Johnson",
-      channel: "Marketing",
-      screen_shared: true,
-      timestamp: new Date().toISOString(),
-      active_app: "Google Docs",
-      active_apps: ["Google Docs", "Gmail", "Trello"],
-      screen_share_time: 1800,
-      total_idle_time: 150,
-      total_active_time: 390,
-      total_session_time: 6.5,
-      duty_start_time: new Date().toISOString(),
-      duty_end_time: null,
-      app_usage: [
-        { app_name: "Google Docs", total_time: 210 },
-        { app_name: "Gmail", total_time: 90 },
-        { app_name: "Trello", total_time: 90 }
-      ],
-      most_used_app: "Google Docs",
-      most_used_app_time: 210,
-      daily_summaries: []
-    }
-  ],
-  history: {
-    username: "user1",
-    display_name: "John Doe",
-    days: [
-      {
-        date: format(new Date(), 'yyyy-MM-dd'),
-        total_active_time: 420,
-        total_session_time: 8.5,
-        total_idle_time: 300,
-        first_activity: new Date().toISOString(),
-        last_activity: new Date().toISOString(),
-        app_usage: [
-          { app_name: "Visual Studio Code", total_time: 180 },
-          { app_name: "Chrome", total_time: 120 },
-          { app_name: "Slack", total_time: 60 }
-        ],
-        most_used_app: "Visual Studio Code",
-        most_used_app_time: 180
-      }
-    ]
-  },
-  screenshots: [
-    {
-      url: "https://via.placeholder.com/500x300?text=Screenshot+1",
-      key: "screenshot1",
-      last_modified: new Date().toISOString()
-    },
-    {
-      url: "https://via.placeholder.com/500x300?text=Screenshot+2",
-      key: "screenshot2",
-      last_modified: new Date().toISOString()
-    }
-  ]
-};
+// API response interfaces to handle nesting
+interface ApiResponse<T> {
+  data: T;
+}
+
+interface ScreenshotResponse {
+  screenshots: Screenshot[];
+  count: number;
+  username: string;
+  date: string;
+}
 
 // API functions
 export const api = {
-  // Get mock data directly - exposed for offline mode
-  getMockDashboardData: async () => {
-    return Promise.resolve(mockData.dashboard);
-  },
-
   fetchDashboard: async () => {
     try {
-      console.log("Fetching dashboard data...");
       const response = await axiosInstance.get('/dashboard', {
         params: { t: Date.now() }
       });
-      console.log("Dashboard data received:", response.data);
-      
-      if (response.data && response.data.data) {
-        return response.data.data;
-      } else {
-        console.warn("Unexpected API response format:", response.data);
-        return mockData.dashboard;
-      }
+      return response.data.data || [];
     } catch (error) {
       console.error("Failed to fetch dashboard:", error);
-      console.log("Using mock data for dashboard");
-      // Return mock data when API is unavailable
-      return mockData.dashboard;
+      throw error;
     }
   },
 
   fetchHistory: async (username: string, days: number = 7) => {
     try {
-      // Sanitize inputs
-      const safeUsername = DOMPurify.sanitize(username);
-      
       const response = await axiosInstance.get('/history', {
-        params: { username: safeUsername, days }
+        params: { username, days }
       });
-      return response.data[0] || { username: safeUsername, days: [] };
+      return response.data[0] || { username, days: [] };
     } catch (error) {
       console.error(`Failed to fetch history for ${username}:`, error);
-      console.log("Using mock data for history");
-      // Return mock data when API is unavailable
-      return mockData.history;
+      throw error;
     }
   },
 
   fetchScreenshots: async (username: string, date: string) => {
     try {
-      // Sanitize inputs
-      const safeUsername = DOMPurify.sanitize(username);
-      const safeDate = DOMPurify.sanitize(date);
-      
       const response = await axiosInstance.get('/screenshots', {
-        params: { username: safeUsername, date: safeDate }
+        params: { username, date }
       });
       return response.data.screenshots || [];
     } catch (error) {
       console.error(`Failed to fetch screenshots for ${username}:`, error);
-      console.log("Using mock data for screenshots");
-      // Return mock data when API is unavailable
-      return mockData.screenshots;
+      throw error;
     }
   }
 };

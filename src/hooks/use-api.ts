@@ -1,8 +1,5 @@
-
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from './use-toast';
-import { toast as sonnerToast } from 'sonner';
-import { DOMPurify } from '@/lib/utils-security';
 
 interface ApiHookOptions<T> {
   onSuccess?: (data: T) => void;
@@ -10,8 +7,6 @@ interface ApiHookOptions<T> {
   enabled?: boolean;
   retryCount?: number;
   retryDelay?: number;
-  errorFallback?: T | null;
-  showErrorToast?: boolean;
 }
 
 export function useApi<T>(
@@ -19,118 +14,51 @@ export function useApi<T>(
   options: ApiHookOptions<T> = {}
 ) {
   const [data, setData] = useState<T | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Start with loading state
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [retryAttempts, setRetryAttempts] = useState(0);
   const { toast } = useToast();
 
   const {
     onSuccess,
     onError,
     enabled = true,
-    retryCount = 1, // Reduce default retries to prevent flickering
-    retryDelay = 1000,
-    errorFallback = null,
-    showErrorToast = true
+    retryCount = 3,
+    retryDelay = 1000
   } = options;
 
-  // Use a ref to track if the component is mounted
-  const isMountedRef = useRef(true);
-  
-  // Use a ref to store the latest fetch function to avoid dependency issues
-  const fetchFnRef = useRef(fetchFn);
-  useEffect(() => {
-    fetchFnRef.current = fetchFn;
-  }, [fetchFn]);
-  
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  const fetchData = useCallback(async (retries = retryCount) => {
-    if (!isMountedRef.current) return;
-    
+  const fetchData = async (retries = retryCount) => {
     try {
       setIsLoading(true);
       setError(null);
-      setRetryAttempts(retryCount - retries);
-      
-      console.log("Fetching data...");
-      const result = await fetchFnRef.current();
-      console.log("Fetch result:", result);
-      
-      // Safety check for sanitization if result contains string content
-      // This is a simplified example - in production you'd want to recursively sanitize objects
-      const sanitizedResult = result;
-      
-      if (!isMountedRef.current) return;
-      
-      setData(sanitizedResult);
-      onSuccess?.(sanitizedResult);
-      
-      // Reset retry attempts on success
-      if (retryAttempts > 0) {
-        setRetryAttempts(0);
-      }
-      
+      const result = await fetchFn();
+      setData(result);
+      onSuccess?.(result);
     } catch (err) {
-      if (!isMountedRef.current) return;
-      
       const error = err as Error;
       console.error('API Error:', error);
       
-      if (retries > 0 && error.message !== "Network Error") {
-        // Show a retry toast for user feedback
-        sonnerToast.info(`Retrying... (${retryCount - retries + 1}/${retryCount})`, {
-          id: 'api-retry-toast',
-        });
-        
+      if (retries > 0) {
         setTimeout(() => fetchData(retries - 1), retryDelay);
         return;
       }
 
       setError(error);
       onError?.(error);
-      
-      if (errorFallback !== null) {
-        setData(errorFallback);
-      }
-      
-      // Show error toast if enabled
-      if (showErrorToast) {
-        if (error.message === "Network Error") {
-          sonnerToast.error("Network connection issue", {
-            description: "Unable to connect to the server. Check your internet connection."
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive"
-          });
-        }
-      }
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
-  }, [retryCount, retryDelay, toast, onSuccess, onError, showErrorToast, errorFallback, retryAttempts]);
+  };
 
   useEffect(() => {
     if (enabled) {
       fetchData();
     }
-  }, [enabled, fetchData]);
+  }, [enabled]);
 
-  return { 
-    data, 
-    isLoading, 
-    error, 
-    refetch: () => fetchData(), 
-    retryAttempts,
-    isRetrying: retryAttempts > 0
-  };
+  return { data, isLoading, error, refetch: () => fetchData() };
 }
