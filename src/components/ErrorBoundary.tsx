@@ -67,7 +67,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     // Show error toast for better UX
     toast("Application Error", {
       description: "An error occurred. Our team has been notified.",
-      variant: "destructive",
+      // Remove the variant property as it's not supported in the ExternalToast type
     });
   }
 
