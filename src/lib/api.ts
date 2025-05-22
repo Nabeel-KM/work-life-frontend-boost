@@ -1,3 +1,4 @@
+
 import axios from "axios";
 import { format } from "date-fns";
 import { DOMPurify } from "./utils-security";
@@ -164,6 +165,29 @@ const mockData = {
       most_used_app: "Figma",
       most_used_app_time: 240,
       daily_summaries: []
+    },
+    {
+      username: "user3",
+      display_name: "Alex Johnson",
+      channel: "Marketing",
+      screen_shared: true,
+      timestamp: new Date().toISOString(),
+      active_app: "Google Docs",
+      active_apps: ["Google Docs", "Gmail", "Trello"],
+      screen_share_time: 1800,
+      total_idle_time: 150,
+      total_active_time: 390,
+      total_session_time: 6.5,
+      duty_start_time: new Date().toISOString(),
+      duty_end_time: null,
+      app_usage: [
+        { app_name: "Google Docs", total_time: 210 },
+        { app_name: "Gmail", total_time: 90 },
+        { app_name: "Trello", total_time: 90 }
+      ],
+      most_used_app: "Google Docs",
+      most_used_app_time: 210,
+      daily_summaries: []
     }
   ],
   history: {
@@ -201,26 +225,27 @@ const mockData = {
   ]
 };
 
-// API response interfaces to handle nesting
-interface ApiResponse<T> {
-  data: T;
-}
-
-interface ScreenshotResponse {
-  screenshots: Screenshot[];
-  count: number;
-  username: string;
-  date: string;
-}
-
 // API functions
 export const api = {
+  // Get mock data directly - exposed for offline mode
+  getMockDashboardData: async () => {
+    return Promise.resolve(mockData.dashboard);
+  },
+
   fetchDashboard: async () => {
     try {
+      console.log("Fetching dashboard data...");
       const response = await axiosInstance.get('/dashboard', {
         params: { t: Date.now() }
       });
-      return response.data.data || [];
+      console.log("Dashboard data received:", response.data);
+      
+      if (response.data && response.data.data) {
+        return response.data.data;
+      } else {
+        console.warn("Unexpected API response format:", response.data);
+        return mockData.dashboard;
+      }
     } catch (error) {
       console.error("Failed to fetch dashboard:", error);
       console.log("Using mock data for dashboard");

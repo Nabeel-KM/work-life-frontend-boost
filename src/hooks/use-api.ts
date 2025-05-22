@@ -19,7 +19,7 @@ export function useApi<T>(
   options: ApiHookOptions<T> = {}
 ) {
   const [data, setData] = useState<T | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading state
   const [error, setError] = useState<Error | null>(null);
   const [retryAttempts, setRetryAttempts] = useState(0);
   const { toast } = useToast();
@@ -28,7 +28,7 @@ export function useApi<T>(
     onSuccess,
     onError,
     enabled = true,
-    retryCount = 3,
+    retryCount = 1, // Reduce default retries to prevent flickering
     retryDelay = 1000,
     errorFallback = null,
     showErrorToast = true
@@ -36,6 +36,12 @@ export function useApi<T>(
 
   // Use a ref to track if the component is mounted
   const isMountedRef = useRef(true);
+  
+  // Use a ref to store the latest fetch function to avoid dependency issues
+  const fetchFnRef = useRef(fetchFn);
+  useEffect(() => {
+    fetchFnRef.current = fetchFn;
+  }, [fetchFn]);
   
   useEffect(() => {
     return () => {
@@ -51,7 +57,9 @@ export function useApi<T>(
       setError(null);
       setRetryAttempts(retryCount - retries);
       
-      const result = await fetchFn();
+      console.log("Fetching data...");
+      const result = await fetchFnRef.current();
+      console.log("Fetch result:", result);
       
       // Safety check for sanitization if result contains string content
       // This is a simplified example - in production you'd want to recursively sanitize objects
@@ -109,7 +117,7 @@ export function useApi<T>(
         setIsLoading(false);
       }
     }
-  }, [fetchFn, retryCount, retryDelay, toast, onSuccess, onError, showErrorToast, errorFallback]);
+  }, [retryCount, retryDelay, toast, onSuccess, onError, showErrorToast, errorFallback, retryAttempts]);
 
   useEffect(() => {
     if (enabled) {
