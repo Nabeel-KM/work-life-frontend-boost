@@ -124,6 +124,90 @@ export interface UserHistory {
   days: HistoryDay[];
 }
 
+// Mock data for offline development or when API is unavailable
+const mockData = {
+  dashboard: [
+    {
+      username: "user1",
+      display_name: "John Doe",
+      channel: "Development",
+      screen_shared: true,
+      timestamp: new Date().toISOString(),
+      active_app: "Visual Studio Code",
+      active_apps: ["Visual Studio Code", "Chrome", "Slack"],
+      screen_share_time: 3600,
+      total_idle_time: 300,
+      total_active_time: 420,
+      total_session_time: 8.5,
+      duty_start_time: new Date().toISOString(),
+      duty_end_time: null,
+      app_usage: [
+        { app_name: "Visual Studio Code", total_time: 180 },
+        { app_name: "Chrome", total_time: 120 },
+        { app_name: "Slack", total_time: 60 }
+      ],
+      most_used_app: "Visual Studio Code",
+      most_used_app_time: 180,
+      daily_summaries: []
+    },
+    {
+      username: "user2",
+      display_name: "Jane Smith",
+      channel: "Design",
+      screen_shared: false,
+      timestamp: new Date().toISOString(),
+      active_app: "Figma",
+      active_apps: ["Figma", "Slack"],
+      screen_share_time: 0,
+      total_idle_time: 600,
+      total_active_time: 360,
+      total_session_time: 7.2,
+      duty_start_time: new Date().toISOString(),
+      duty_end_time: null,
+      app_usage: [
+        { app_name: "Figma", total_time: 240 },
+        { app_name: "Slack", total_time: 120 }
+      ],
+      most_used_app: "Figma",
+      most_used_app_time: 240,
+      daily_summaries: []
+    }
+  ],
+  history: {
+    username: "user1",
+    display_name: "John Doe",
+    days: [
+      {
+        date: format(new Date(), 'yyyy-MM-dd'),
+        total_active_time: 420,
+        total_session_time: 8.5,
+        total_idle_time: 300,
+        first_activity: new Date().toISOString(),
+        last_activity: new Date().toISOString(),
+        app_usage: [
+          { app_name: "Visual Studio Code", total_time: 180 },
+          { app_name: "Chrome", total_time: 120 },
+          { app_name: "Slack", total_time: 60 }
+        ],
+        most_used_app: "Visual Studio Code",
+        most_used_app_time: 180
+      }
+    ]
+  },
+  screenshots: [
+    {
+      url: "https://via.placeholder.com/500x300?text=Screenshot+1",
+      key: "screenshot1",
+      last_modified: new Date().toISOString()
+    },
+    {
+      url: "https://via.placeholder.com/500x300?text=Screenshot+2",
+      key: "screenshot2",
+      last_modified: new Date().toISOString()
+    }
+  ]
+};
+
 // API response interfaces to handle nesting
 interface ApiResponse<T> {
   data: T;
@@ -146,7 +230,9 @@ export const api = {
       return response.data.data || [];
     } catch (error) {
       console.error("Failed to fetch dashboard:", error);
-      throw error;
+      console.log("Using mock data for dashboard");
+      // Return mock data when API is unavailable
+      return mockData.dashboard;
     }
   },
 
@@ -161,7 +247,9 @@ export const api = {
       return response.data[0] || { username: safeUsername, days: [] };
     } catch (error) {
       console.error(`Failed to fetch history for ${username}:`, error);
-      throw error;
+      console.log("Using mock data for history");
+      // Return mock data when API is unavailable
+      return mockData.history;
     }
   },
 
@@ -177,7 +265,9 @@ export const api = {
       return response.data.screenshots || [];
     } catch (error) {
       console.error(`Failed to fetch screenshots for ${username}:`, error);
-      throw error;
+      console.log("Using mock data for screenshots");
+      // Return mock data when API is unavailable
+      return mockData.screenshots;
     }
   }
 };

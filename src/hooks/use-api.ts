@@ -76,7 +76,7 @@ export function useApi<T>(
       const error = err as Error;
       console.error('API Error:', error);
       
-      if (retries > 0) {
+      if (retries > 0 && error.message !== "Network Error") {
         // Show a retry toast for user feedback
         sonnerToast.info(`Retrying... (${retryCount - retries + 1}/${retryCount})`, {
           id: 'api-retry-toast',
@@ -95,11 +95,17 @@ export function useApi<T>(
       
       // Show error toast if enabled
       if (showErrorToast) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive"
-        });
+        if (error.message === "Network Error") {
+          sonnerToast.error("Network connection issue", {
+            description: "Unable to connect to the server. Check your internet connection."
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive"
+          });
+        }
       }
     } finally {
       if (isMountedRef.current) {

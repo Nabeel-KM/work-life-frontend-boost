@@ -1,7 +1,8 @@
+
 import React, { useState, Suspense, memo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useApi } from "@/hooks/use-api";
-import { Check, Clock, User, Settings, AlertTriangle } from "lucide-react";
+import { Check, Clock, User, Settings, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 import { api, UserData } from "@/lib/api";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import UserCard from "@/components/monitoring/UserCard";
@@ -13,27 +14,51 @@ import { formatHours } from "@/lib/utils-time";
 import UserHistoryModal from "@/components/monitoring/UserHistoryModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardSkeleton } from "@/components/ui/loading-skeleton";
+import { toast } from "sonner";
 
 const MonitoringPage = () => {
-  const { toast } = useToast();
+  const { toast: shadowToast } = useToast();
   const [isScreenshotsModalOpen, setIsScreenshotsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyUser, setHistoryUser] = useState<string | null>(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   const { data: users, isLoading, error, refetch } = useApi(api.fetchDashboard, {
     retryCount: 3,
-    retryDelay: 2000
+    retryDelay: 2000,
+    onError: (err) => {
+      if (err.message === "Network Error") {
+        setIsOfflineMode(true);
+        toast.warning("Network connection issue detected", {
+          description: "Using offline mode with mock data",
+          icon: <WifiOff className="h-4 w-4" />
+        });
+      }
+    }
   });
 
   const handleRefresh = useCallback(() => {
     refetch();
-    toast({
-      title: "Refreshing data",
+    toast.info("Refreshing data", {
       description: "Fetching the latest monitoring data",
     });
-  }, [refetch, toast]);
+  }, [refetch]);
+
+  const handleToggleOfflineMode = useCallback(() => {
+    setIsOfflineMode(prev => !prev);
+    if (!isOfflineMode) {
+      toast.info("Switched to offline mode", {
+        description: "Using mock data for development",
+      });
+    } else {
+      toast.info("Trying online mode", {
+        description: "Attempting to connect to API",
+      });
+      refetch();
+    }
+  }, [isOfflineMode, refetch]);
 
   // Ensure users is always an array
   const safeUsers: UserData[] = Array.isArray(users) ? users : [];
@@ -57,14 +82,27 @@ const MonitoringPage = () => {
     setShowHistory(true);
   };
   
-  if (error) {
+  if (error && !isOfflineMode) {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-full p-8 text-center">
           <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
           <h2 className="text-2xl font-bold mb-2">Unable to load monitoring data</h2>
           <p className="text-muted-foreground mb-4">{error.message}</p>
-          <Button onClick={handleRefresh}>Retry Connection</Button>
+          <div className="flex gap-4">
+            <Button onClick={handleRefresh} className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Retry Connection
+            </Button>
+            <Button 
+              onClick={handleToggleOfflineMode} 
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <WifiOff className="h-4 w-4" />
+              Use Offline Mode
+            </Button>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -77,12 +115,41 @@ const MonitoringPage = () => {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Work Monitoring</h1>
-              <p className="text-muted-foreground">Track and manage your remote workforce in real-time.</p>
+              <p className="text-muted-foreground flex items-center gap-2">
+                Track and manage your remote workforce in real-time.
+                {isOfflineMode && (
+                  <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                    <WifiOff className="h-3 w-3 mr-1" />
+                    Offline Mode
+                  </span>
+                )}
+              </p>
             </div>
-            <Button onClick={handleRefresh} className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Refresh Data
-            </Button>
+            <div className="flex gap-2">
+              {isOfflineMode ? (
+                <Button 
+                  onClick={handleToggleOfflineMode} 
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Wifi className="h-4 w-4" />
+                  Try Online Mode
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleToggleOfflineMode} 
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <WifiOff className="h-4 w-4" />
+                  Use Offline Mode
+                </Button>
+              )}
+              <Button onClick={handleRefresh} className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Refresh Data
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -123,7 +190,11 @@ const MonitoringPage = () => {
             <CardHeader className="pb-2">
               <CardTitle>Team Activity</CardTitle>
               <CardDescription>
-                {isLoading ? "Loading employee data..." : `Monitoring ${safeUsers.length} employees`}
+                {isLoading 
+                  ? "Loading employee data..." 
+                  : isOfflineMode 
+                    ? `Viewing ${safeUsers.length} employees (Offline Mode)` 
+                    : `Monitoring ${safeUsers.length} employees`}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
