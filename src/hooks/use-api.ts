@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from './use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { DOMPurify } from '@/lib/utils-security';

@@ -2,7 +2,7 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from './ui/button';
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 interface FallbackProps {
   error: Error;
@@ -65,8 +65,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     this.props.onError?.(error, errorInfo);
     
     // Show error toast for better UX
-    toast({
-      title: "Application Error",
+    toast("Application Error", {
       description: "An error occurred. Our team has been notified.",
       variant: "destructive",
     });
