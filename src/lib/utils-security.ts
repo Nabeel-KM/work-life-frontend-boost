@@ -29,37 +29,6 @@ export const DOMPurify = {
   }
 };
 
-// CSRF token generation and validation
-export const CSRFProtection = {
-  // Generate a CSRF token and store it
-  generateToken: (): string => {
-    const token = Array(32)
-      .fill(0)
-      .map(() => Math.floor(Math.random() * 16).toString(16))
-      .join('');
-    
-    localStorage.setItem('csrf_token', token);
-    return token;
-  },
-  
-  // Get the current CSRF token
-  getToken: (): string => {
-    let token = localStorage.getItem('csrf_token');
-    if (!token) {
-      token = CSRFProtection.generateToken();
-    }
-    return token;
-  },
-  
-  // Add CSRF token to headers (for use with fetch or axios)
-  addTokenToHeaders: (headers: Record<string, string> = {}): Record<string, string> => {
-    return {
-      ...headers,
-      'X-CSRF-Token': CSRFProtection.getToken(),
-    };
-  }
-};
-
 // Input validation utilities
 export const InputValidation = {
   // Check if input matches a pattern
@@ -77,21 +46,4 @@ export const InputValidation = {
     // Remove special characters that could be used for SQL injection
     return query.replace(/[^\w\s]/gi, '');
   }
-};
-
-// Add CSRF meta tag to document head
-export const setupCSRFProtection = (): void => {
-  // Create or update CSRF meta tag
-  let metaTag = document.querySelector('meta[name="csrf-token"]');
-  if (!metaTag) {
-    metaTag = document.createElement('meta');
-    metaTag.setAttribute('name', 'csrf-token');
-    document.head.appendChild(metaTag);
-  }
-  metaTag.setAttribute('content', CSRFProtection.getToken());
-  
-  // Setup token refresh every hour
-  setInterval(() => {
-    metaTag?.setAttribute('content', CSRFProtection.generateToken());
-  }, 60 * 60 * 1000); // 1 hour
 };

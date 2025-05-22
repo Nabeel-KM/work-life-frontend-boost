@@ -1,7 +1,6 @@
-
 import axios from "axios";
 import { format } from "date-fns";
-import { CSRFProtection, DOMPurify } from "./utils-security";
+import { DOMPurify } from "./utils-security";
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
@@ -17,12 +16,6 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, config.params || {});
-    
-    // Add CSRF token to requests if available
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (csrfToken) {
-      config.headers['X-CSRF-Token'] = csrfToken;
-    }
     
     // Sanitize URL parameters for security
     if (config.params) {

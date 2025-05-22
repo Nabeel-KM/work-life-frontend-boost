@@ -51,9 +51,6 @@ export function useApi<T>(
       setError(null);
       setRetryAttempts(retryCount - retries);
       
-      // Add CSRF token if available
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
       const result = await fetchFn();
       
       // Safety check for sanitization if result contains string content
