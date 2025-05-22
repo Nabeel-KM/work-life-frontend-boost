@@ -1,5 +1,7 @@
+
 import axios from "axios";
 import { format } from "date-fns";
+import { CSRFProtection, DOMPurify } from "./utils-security";
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
@@ -11,10 +13,27 @@ const axiosInstance = axios.create({
   }
 });
 
-// Add request interceptor for logging
+// Add request interceptor for logging and security
 axiosInstance.interceptors.request.use(
   (config) => {
     console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, config.params || {});
+    
+    // Add CSRF token to requests if available
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (csrfToken) {
+      config.headers['X-CSRF-Token'] = csrfToken;
+    }
+    
+    // Sanitize URL parameters for security
+    if (config.params) {
+      Object.keys(config.params).forEach(key => {
+        if (typeof config.params[key] === 'string') {
+          // Basic sanitization for string parameters
+          config.params[key] = DOMPurify.sanitize(config.params[key]);
+        }
+      });
+    }
+    
     return config;
   },
   (error) => {
@@ -23,7 +42,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
+// Add response interceptor for error handling and data sanitization
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
@@ -133,10 +152,13 @@ export const api = {
 
   fetchHistory: async (username: string, days: number = 7) => {
     try {
+      // Sanitize inputs
+      const safeUsername = DOMPurify.sanitize(username);
+      
       const response = await axiosInstance.get('/history', {
-        params: { username, days }
+        params: { username: safeUsername, days }
       });
-      return response.data[0] || { username, days: [] };
+      return response.data[0] || { username: safeUsername, days: [] };
     } catch (error) {
       console.error(`Failed to fetch history for ${username}:`, error);
       throw error;
@@ -145,8 +167,12 @@ export const api = {
 
   fetchScreenshots: async (username: string, date: string) => {
     try {
+      // Sanitize inputs
+      const safeUsername = DOMPurify.sanitize(username);
+      const safeDate = DOMPurify.sanitize(date);
+      
       const response = await axiosInstance.get('/screenshots', {
-        params: { username, date }
+        params: { username: safeUsername, date: safeDate }
       });
       return response.data.screenshots || [];
     } catch (error) {
