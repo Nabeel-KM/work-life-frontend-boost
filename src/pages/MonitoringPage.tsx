@@ -35,6 +35,17 @@ const MonitoringPage = () => {
     });
   }, [refetch, toast]);
 
+  // Add the missing handler functions
+  const handleViewScreenshots = useCallback((username: string) => {
+    setSelectedUser(username);
+    setIsScreenshotsModalOpen(true);
+  }, []);
+
+  const handleViewHistory = useCallback((username: string) => {
+    setHistoryUser(username);
+    setShowHistory(true);
+  }, []);
+
   // Ensure users is always an array
   const safeUsers: UserData[] = Array.isArray(users) ? users : [];
   
