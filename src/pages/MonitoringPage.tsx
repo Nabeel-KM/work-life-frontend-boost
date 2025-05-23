@@ -35,7 +35,7 @@ const MonitoringPage = () => {
     });
   }, [refetch, toast]);
 
-  // Add the missing handler functions
+  // Handler functions
   const handleViewScreenshots = useCallback((username: string) => {
     setSelectedUser(username);
     setIsScreenshotsModalOpen(true);
@@ -66,6 +66,10 @@ const MonitoringPage = () => {
       </DashboardLayout>
     );
   }
+
+  // Debug loading state
+  console.log("Dashboard loading state:", isLoading);
+  console.log("Dashboard data:", users);
 
   return (
     <DashboardLayout>

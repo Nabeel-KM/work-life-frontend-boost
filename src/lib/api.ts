@@ -4,7 +4,7 @@ import axios from "axios";
 // Create axios instance with default config
 const axiosInstance = axios.create({
   baseURL: "https://api-wfh.kryptomind.net/api",
-  timeout: 15000, // Increased timeout for slow connections
+  timeout: 20000, // Increased timeout for slow connections
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache'
@@ -29,6 +29,7 @@ axiosInstance.interceptors.response.use(
   (response) => {
     const timestamp = new Date().toISOString();
     console.log(`✅ [${timestamp}] ${response.config.method?.toUpperCase()} ${response.config.url} - Status: ${response.status}`);
+    console.log('📦 Response data structure:', Object.keys(response.data || {}));
     return response;
   },
   (error) => {
@@ -130,13 +131,31 @@ export const api = {
         params: { t: timestamp }
       });
       
+      // Log detailed response data for debugging
+      console.log('Dashboard response received:', !!response.data);
+      
       // Validate and normalize response data
-      if (!response.data || !response.data.data) {
-        console.warn('Invalid response format from dashboard API');
+      if (!response.data) {
+        console.warn('Empty response from dashboard API');
         return [];
       }
       
-      return response.data.data || [];
+      if (!response.data.data && !Array.isArray(response.data)) {
+        console.warn('Invalid response format from dashboard API:', response.data);
+        return [];
+      }
+      
+      // Handle different response formats
+      const userData = response.data.data || response.data;
+      
+      // Ensure we're returning an array
+      if (!Array.isArray(userData)) {
+        console.warn('Dashboard data is not an array:', userData);
+        return [];
+      }
+      
+      console.log(`Processed ${userData.length} user records from dashboard API`);
+      return userData;
     } catch (error) {
       console.error("Failed to fetch dashboard:", error);
       throw new Error("Could not retrieve dashboard data. Please check your network connection.");
@@ -149,7 +168,14 @@ export const api = {
         params: { username, days }
       });
       
-      if (!response.data || !Array.isArray(response.data)) {
+      console.log('History response received:', !!response.data);
+      
+      if (!response.data) {
+        console.warn('Empty response from history API');
+        return { username, days: [] };
+      }
+      
+      if (!Array.isArray(response.data)) {
         console.warn('Invalid response format from history API');
         return { username, days: [] };
       }
@@ -167,12 +193,26 @@ export const api = {
         params: { username, date }
       });
       
-      if (!response.data || !response.data.screenshots) {
+      console.log('Screenshots response received:', !!response.data);
+      
+      if (!response.data) {
+        console.warn('Empty response from screenshots API');
+        return [];
+      }
+      
+      if (!response.data.screenshots && !Array.isArray(response.data)) {
         console.warn('Invalid response format from screenshots API');
         return [];
       }
       
-      return response.data.screenshots || [];
+      const screenshots = response.data.screenshots || response.data;
+      
+      if (!Array.isArray(screenshots)) {
+        console.warn('Screenshots data is not an array:', screenshots);
+        return [];
+      }
+      
+      return screenshots;
     } catch (error) {
       console.error(`Failed to fetch screenshots for ${username}:`, error);
       throw new Error(`Could not retrieve screenshots for ${username}. Please check your network connection.`);

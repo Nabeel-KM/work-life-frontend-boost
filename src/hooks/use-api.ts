@@ -53,6 +53,8 @@ export function useApi<T>(
       setData(result);
       setRetries(0); // Reset retries on success
       onSuccess?.(result);
+      // Make sure to set isLoading to false after success
+      setIsLoading(false);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       console.error('API Error:', error);
@@ -75,10 +77,9 @@ export function useApi<T>(
           variant: "destructive"
         });
       }
-    } finally {
-      if (retries >= retryCount) {
-        setIsLoading(false);
-      }
+      
+      // Make sure to set isLoading to false after all retries fail
+      setIsLoading(false);
     }
   }, [enabled, fetchFn, onError, onSuccess, retries, retryCount, retryDelay, toast]);
 
@@ -89,6 +90,9 @@ export function useApi<T>(
   useEffect(() => {
     if (enabled) {
       fetchData();
+    } else {
+      // If not enabled, make sure we're not in loading state
+      setIsLoading(false);
     }
     
     return () => {
