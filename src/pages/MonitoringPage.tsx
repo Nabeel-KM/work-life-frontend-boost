@@ -1,7 +1,8 @@
+
 import React, { useState, Suspense, memo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useApi } from "@/hooks/use-api";
-import { Check, Clock, User, Settings, AlertTriangle } from "lucide-react";
+import { Check, Clock, User, AlertTriangle } from "lucide-react";
 import { api, UserData } from "@/lib/api";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import UserCard from "@/components/monitoring/UserCard";
@@ -9,7 +10,6 @@ import StatsCard from "@/components/monitoring/StatsCard";
 import ScreenshotsModal from "@/components/monitoring/ScreenshotsModal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatHours } from "@/lib/utils-time";
 import UserHistoryModal from "@/components/monitoring/UserHistoryModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DashboardSkeleton } from "@/components/ui/loading-skeleton";
@@ -43,20 +43,6 @@ const MonitoringPage = () => {
   const idleUsers = safeUsers.filter(user => !user?.screen_shared && user?.total_idle_time > 0);
   const offlineUsers = safeUsers.filter(user => !user?.screen_shared && !user?.active_app);
   
-  const totalWorkingTime = safeUsers.reduce((total, user) => total + (user?.total_session_time || 0), 0);
-  
-  // Handle screenshot view
-  const handleViewScreenshots = (username: string) => {
-    setSelectedUser(username);
-    setIsScreenshotsModalOpen(true);
-  };
-
-  // Handle history view
-  const handleViewHistory = (username: string) => {
-    setHistoryUser(username);
-    setShowHistory(true);
-  };
-  
   if (error) {
     return (
       <DashboardLayout>
@@ -85,7 +71,7 @@ const MonitoringPage = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <StatsCard 
               title="Active Employees"
               value={activeUsers.length.toString()}
@@ -109,13 +95,6 @@ const MonitoringPage = () => {
               icon={<User className="h-5 w-5" />}
               trend={safeUsers.length ? Math.round((offlineUsers.length / safeUsers.length) * 100) : 0}
               className="bg-gray-50 dark:bg-gray-900/20"
-            />
-            <StatsCard 
-              title="Total Working Hours"
-              value={formatHours(totalWorkingTime || 0)}
-              description="Today's progress"
-              icon={<Settings className="h-5 w-5" />}
-              className="bg-blue-50 dark:bg-blue-900/20"
             />
           </div>
 

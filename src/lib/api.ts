@@ -1,10 +1,10 @@
+
 import axios from "axios";
-import { format } from "date-fns";
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
   baseURL: "https://api-wfh.kryptomind.net/api",
-  timeout: 10000,
+  timeout: 15000, // Increased timeout for slow connections
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache'
@@ -14,7 +14,8 @@ const axiosInstance = axios.create({
 // Add request interceptor for logging
 axiosInstance.interceptors.request.use(
   (config) => {
-    console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, config.params || {});
+    const timestamp = new Date().toISOString();
+    console.log(`🚀 [${timestamp}] ${config.method?.toUpperCase()} ${config.url}`, config.params || {});
     return config;
   },
   (error) => {
@@ -26,11 +27,26 @@ axiosInstance.interceptors.request.use(
 // Add response interceptor for error handling
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
+    const timestamp = new Date().toISOString();
+    console.log(`✅ [${timestamp}] ${response.config.method?.toUpperCase()} ${response.config.url} - Status: ${response.status}`);
     return response;
   },
   (error) => {
-    console.error('❌ Response error:', error.response?.data || error.message);
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('❌ Response error:', {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers
+      });
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('❌ Network error: No response received', error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('❌ Error in request setup:', error.message);
+    }
     return Promise.reject(error);
   }
 );
@@ -105,29 +121,25 @@ export interface UserHistory {
   days: HistoryDay[];
 }
 
-// API response interfaces to handle nesting
-interface ApiResponse<T> {
-  data: T;
-}
-
-interface ScreenshotResponse {
-  screenshots: Screenshot[];
-  count: number;
-  username: string;
-  date: string;
-}
-
 // API functions
 export const api = {
   fetchDashboard: async () => {
     try {
+      const timestamp = Date.now();
       const response = await axiosInstance.get('/dashboard', {
-        params: { t: Date.now() }
+        params: { t: timestamp }
       });
+      
+      // Validate and normalize response data
+      if (!response.data || !response.data.data) {
+        console.warn('Invalid response format from dashboard API');
+        return [];
+      }
+      
       return response.data.data || [];
     } catch (error) {
       console.error("Failed to fetch dashboard:", error);
-      throw error;
+      throw new Error("Could not retrieve dashboard data. Please check your network connection.");
     }
   },
 
@@ -136,10 +148,16 @@ export const api = {
       const response = await axiosInstance.get('/history', {
         params: { username, days }
       });
+      
+      if (!response.data || !Array.isArray(response.data)) {
+        console.warn('Invalid response format from history API');
+        return { username, days: [] };
+      }
+      
       return response.data[0] || { username, days: [] };
     } catch (error) {
       console.error(`Failed to fetch history for ${username}:`, error);
-      throw error;
+      throw new Error(`Could not retrieve history for ${username}. Please try again later.`);
     }
   },
 
@@ -148,10 +166,16 @@ export const api = {
       const response = await axiosInstance.get('/screenshots', {
         params: { username, date }
       });
+      
+      if (!response.data || !response.data.screenshots) {
+        console.warn('Invalid response format from screenshots API');
+        return [];
+      }
+      
       return response.data.screenshots || [];
     } catch (error) {
       console.error(`Failed to fetch screenshots for ${username}:`, error);
-      throw error;
+      throw new Error(`Could not retrieve screenshots for ${username}. Please check your network connection.`);
     }
   }
 };
