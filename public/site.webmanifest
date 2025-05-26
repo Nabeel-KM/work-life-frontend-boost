@@ -1,0 +1,14 @@
+{
+  "name": "WFH Monitoring System",
+  "short_name": "WFH Monitor",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#0078D4",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
