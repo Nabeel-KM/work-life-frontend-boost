@@ -6,8 +6,6 @@ interface ApiHookOptions<T> {
   onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
   enabled?: boolean;
-  retryCount?: number;
-  retryDelay?: number;
   initialData?: T | null;
 }
 
@@ -18,23 +16,17 @@ export function useApi<T>(
   const [data, setData] = useState<T | null>(options.initialData || null);
   const [isLoading, setIsLoading] = useState<boolean>(options.enabled !== false);
   const [error, setError] = useState<Error | null>(null);
-  const [retries, setRetries] = useState<number>(0);
   const { toast } = useToast();
 
   const {
     onSuccess,
     onError,
-    enabled = true,
-    retryCount = 3,
-    retryDelay = 1000
+    enabled = true
   } = options;
 
-  const fetchData = useCallback(async (manualRetry: boolean = false) => {
-    if (manualRetry) {
-      setRetries(0);
-    }
-    
+  const fetchData = useCallback(async () => {
     if (!enabled) {
+      setIsLoading(false);
       return;
     }
 
@@ -42,7 +34,7 @@ export function useApi<T>(
       setIsLoading(true);
       setError(null);
       
-      console.log(`🔄 Fetching data, attempt ${retries + 1}/${retryCount}`);
+      console.log('🔄 Fetching data');
       const result = await fetchFn();
       
       // Validate result to ensure it's not null or undefined
@@ -51,54 +43,34 @@ export function useApi<T>(
       }
       
       setData(result);
-      setRetries(0); // Reset retries on success
       onSuccess?.(result);
-      // Make sure to set isLoading to false after success
       setIsLoading(false);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       console.error('API Error:', error);
       
-      if (retries < retryCount) {
-        console.log(`⚠️ Retry ${retries + 1}/${retryCount} in ${retryDelay}ms`);
-        setRetries(prev => prev + 1);
-        setTimeout(() => fetchData(), retryDelay);
-        return;
-      }
-
       setError(error);
+      setIsLoading(false);
       onError?.(error);
       
-      // Only show toast on final retry failure
-      if (retries >= retryCount - 1) {
-        toast({
-          title: "Connection Error",
-          description: "Unable to load data. Please check your connection.",
-          variant: "destructive"
-        });
-      }
-      
-      // Make sure to set isLoading to false after all retries fail
-      setIsLoading(false);
+      toast({
+        title: "Connection Error",
+        description: "Unable to load data. Please check your connection and try refreshing manually.",
+        variant: "destructive"
+      });
     }
-  }, [enabled, fetchFn, onError, onSuccess, retries, retryCount, retryDelay, toast]);
+  }, [enabled, fetchFn, onError, onSuccess, toast]);
 
   const refetch = useCallback(() => {
-    fetchData(true);
+    fetchData();
   }, [fetchData]);
 
   useEffect(() => {
     if (enabled) {
       fetchData();
     } else {
-      // If not enabled, make sure we're not in loading state
       setIsLoading(false);
     }
-    
-    return () => {
-      // Cleanup function in case component unmounts during fetch
-      setIsLoading(false);
-    };
   }, [enabled, fetchData]);
 
   return { 
