@@ -1,4 +1,3 @@
-
 import React, { useState, Suspense, memo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useApi } from "@/hooks/use-api";
@@ -22,10 +21,7 @@ const MonitoringPage = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [historyUser, setHistoryUser] = useState<string | null>(null);
 
-  const { data: users, isLoading, error, refetch } = useApi(api.fetchDashboard, {
-    retryCount: 3,
-    retryDelay: 2000
-  });
+  const { data: users, isLoading, error, refetch } = useApi(api.fetchDashboard);
 
   const handleRefresh = useCallback(() => {
     refetch();
