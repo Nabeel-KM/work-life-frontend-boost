@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays } from "date-fns";
 import { api, UserHistory, Screenshot } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, ArrowLeft, ChevronLeft, ChevronRight, X, Activity, Clock, User } from "lucide-react";
+import { Calendar, ArrowLeft, ChevronLeft, ChevronRight, X, Activity, Clock, User, ZoomIn, ZoomOut } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,24 +98,38 @@ const UserDetailsPage = () => {
     : [];
 
   // Handle navigation between screenshots
+  const [zoomLevel, setZoomLevel] = useState(1);
+  
   const handleScreenshotClick = (index: number) => {
     setSelectedScreenshot(index);
+    setZoomLevel(1); // Reset zoom when opening a new screenshot
   };
   
   const handlePrevious = () => {
     if (selectedScreenshot !== null && screenshots.length > 0) {
       setSelectedScreenshot((prev) => (prev === 0 ? screenshots.length - 1 : prev - 1));
+      setZoomLevel(1); // Reset zoom when changing screenshots
     }
   };
   
   const handleNext = () => {
     if (selectedScreenshot !== null && screenshots.length > 0) {
       setSelectedScreenshot((prev) => (prev === screenshots.length - 1 ? 0 : prev + 1));
+      setZoomLevel(1); // Reset zoom when changing screenshots
     }
   };
   
   const closePreview = () => {
     setSelectedScreenshot(null);
+    setZoomLevel(1); // Reset zoom when closing
+  };
+  
+  const zoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3)); // Max zoom 3x
+  };
+  
+  const zoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5)); // Min zoom 0.5x
   };
 
   // Render screenshot preview modal
@@ -147,7 +161,8 @@ const UserDetailsPage = () => {
             <img 
               src={screenshots[selectedScreenshot].url} 
               alt={`Screenshot ${selectedScreenshot + 1}`}
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full object-contain transition-transform duration-200"
+              style={{ transform: `scale(${zoomLevel})` }}
             />
             
             <Button 
@@ -160,8 +175,31 @@ const UserDetailsPage = () => {
             </Button>
           </div>
           
-          <div className="mt-4 bg-black/40 px-4 py-2 rounded-md text-white">
-            {formatTimeOnly(screenshots[selectedScreenshot].last_modified)}
+          <div className="mt-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full bg-black/20 hover:bg-black/40 text-white"
+                onClick={zoomOut}
+              >
+                <ZoomOut className="h-5 w-5" />
+              </Button>
+              <span className="bg-black/40 px-3 py-1 rounded-md text-white text-sm">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full bg-black/20 hover:bg-black/40 text-white"
+                onClick={zoomIn}
+              >
+                <ZoomIn className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="bg-black/40 px-4 py-2 rounded-md text-white">
+              {formatTimeOnly(screenshots[selectedScreenshot].last_modified)}
+            </div>
           </div>
         </div>
       </div>

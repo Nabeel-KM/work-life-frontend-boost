@@ -12,7 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { User, Calendar, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { User, Calendar, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
 
 interface ScreenshotsModalProps {
   isOpen: boolean;
@@ -59,29 +59,43 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedScreenshot, setSelectedScreenshot] = useState<number | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const handleClose = useCallback(() => {
     onClose();
+    setSelectedScreenshot(null);
   }, [onClose]);
   
   const handleScreenshotClick = useCallback((index: number) => {
     setSelectedScreenshot(index);
+    setZoomLevel(1); // Reset zoom when opening a new screenshot
   }, []);
   
   const handlePrevious = useCallback(() => {
     if (selectedScreenshot !== null && screenshots.length > 0) {
       setSelectedScreenshot((prev) => (prev === 0 ? screenshots.length - 1 : prev - 1));
+      setZoomLevel(1); // Reset zoom when changing screenshots
     }
   }, [selectedScreenshot, screenshots.length]);
   
   const handleNext = useCallback(() => {
     if (selectedScreenshot !== null && screenshots.length > 0) {
       setSelectedScreenshot((prev) => (prev === screenshots.length - 1 ? 0 : prev + 1));
+      setZoomLevel(1); // Reset zoom when changing screenshots
     }
   }, [selectedScreenshot, screenshots.length]);
   
   const closePreview = useCallback(() => {
     setSelectedScreenshot(null);
+    setZoomLevel(1); // Reset zoom when closing
+  }, []);
+  
+  const zoomIn = useCallback(() => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3)); // Max zoom 3x
+  }, []);
+  
+  const zoomOut = useCallback(() => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5)); // Min zoom 0.5x
   }, []);
 
   useEffect(() => {
@@ -89,6 +103,7 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
       setIsLoading(true);
       setError(null);
       setSelectedScreenshot(null);
+      setZoomLevel(1); // Reset zoom level when modal opens
 
       api.fetchScreenshots(username, date)
         .then(data => {
@@ -106,7 +121,7 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
   }, [isOpen, username, date]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Screenshots</DialogTitle>
@@ -178,7 +193,8 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
                   <img 
                     src={screenshots[selectedScreenshot].url} 
                     alt={`Screenshot ${selectedScreenshot + 1}`}
-                    className="max-w-full max-h-full object-contain"
+                    className="max-w-full max-h-full object-contain transition-transform duration-200"
+                    style={{ transform: `scale(${zoomLevel})` }}
                   />
                   
                   <Button 
@@ -191,8 +207,31 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
                   </Button>
                 </div>
                 
-                <div className="mt-4 bg-black/40 px-4 py-2 rounded-md text-white">
-                  {formatTimeOnly(screenshots[selectedScreenshot].last_modified)}
+                <div className="mt-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="rounded-full bg-black/20 hover:bg-black/40 text-white"
+                      onClick={zoomOut}
+                    >
+                      <ZoomOut className="h-5 w-5" />
+                    </Button>
+                    <span className="bg-black/40 px-3 py-1 rounded-md text-white text-sm">
+                      {Math.round(zoomLevel * 100)}%
+                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="rounded-full bg-black/20 hover:bg-black/40 text-white"
+                      onClick={zoomIn}
+                    >
+                      <ZoomIn className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  <div className="bg-black/40 px-4 py-2 rounded-md text-white">
+                    {formatTimeOnly(screenshots[selectedScreenshot].last_modified)}
+                  </div>
                 </div>
               </div>
             </div>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 type HeaderProps = {
   title?: string;
@@ -22,6 +23,7 @@ const Header: React.FC<HeaderProps> = ({
           <p className="text-muted-foreground">{subtitle}</p>
         </div>
         <div className="flex items-center space-x-4">
+          <ThemeToggle />
           <Button>Refresh Data</Button>
         </div>
       </div>
