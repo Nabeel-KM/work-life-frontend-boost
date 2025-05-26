@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Info, Settings, Zap } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 type SidebarProps = {
   className?: string;
@@ -61,17 +59,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       </nav>
       
       <div className="p-4 border-t">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-              <span className="text-secondary-foreground font-medium">A</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">Admin User</span>
-              <span className="text-xs text-muted-foreground">admin@example.com</span>
-            </div>
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+            <span className="text-secondary-foreground font-medium">A</span>
           </div>
-          <ThemeToggle />
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">Admin User</span>
+            <span className="text-xs text-muted-foreground">admin@example.com</span>
+          </div>
         </div>
       </div>
     </div>
