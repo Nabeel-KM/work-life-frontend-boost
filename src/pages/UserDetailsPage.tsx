@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays } from "date-fns";
 import { api, UserHistory, Screenshot } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, ArrowLeft, ChevronLeft, ChevronRight, X, Activity, Clock, User, ZoomIn, ZoomOut } from "lucide-react";
+import { Calendar, ArrowLeft, ChevronLeft, ChevronRight, X, Activity, Clock, User, ZoomIn, ZoomOut, Info } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatHours, formatTimeOnly, formatDate, formatMinutesToTime } from "@/lib/utils-time";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { SkeletonCard } from "@/components/ui/skeleton-card";
+import { TooltipCard } from "@/components/ui/tooltip-card";
+import { ActivityChart } from "@/components/ui/activity-chart";
+import { HoverCardCustom } from "@/components/ui/hover-card-custom";
 
 const UserDetailsPage = () => {
   const { username } = useParams<{ username: string }>();
@@ -280,21 +285,29 @@ const UserDetailsPage = () => {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-secondary/10 p-4 rounded-md hover:bg-secondary/20 transition-colors">
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Time</p>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-200 bg-clip-text text-transparent">{formatMinutesToTime(selectedDayData.total_active_time * 60)}</p>
+                    <div className="bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200/50 dark:border-green-800/50 p-4 rounded-md shadow-sm hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Time</p>
+                        <Badge variant="success" size="sm">Productive</Badge>
+                      </div>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-green-900 dark:from-white dark:to-green-200 bg-clip-text text-transparent">{formatMinutesToTime(selectedDayData.total_active_time * 60)}</p>
                     </div>
-                    <div className="bg-secondary/10 p-4 rounded-md hover:bg-secondary/20 transition-colors">
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Session Time</p>
+                    <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-800/50 p-4 rounded-md shadow-sm hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Session Time</p>
+                        <Badge variant="info" size="sm">Tracked</Badge>
+                      </div>
                       <p className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-200 bg-clip-text text-transparent">{selectedDayData.total_session_time.toFixed(1)}h</p>
                     </div>
-                    <div className="bg-secondary/10 p-4 rounded-md hover:bg-secondary/20 transition-colors">
+                    <div className="bg-gradient-to-br from-amber-50/50 to-yellow-50/50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200/50 dark:border-amber-800/50 p-4 rounded-md shadow-sm hover:shadow-md transition-all duration-300">
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">First Activity</p>
                       <p className="text-lg font-medium">{formatTimeOnly(selectedDayData.first_activity)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Day Start</p>
                     </div>
-                    <div className="bg-secondary/10 p-4 rounded-md hover:bg-secondary/20 transition-colors">
+                    <div className="bg-gradient-to-br from-purple-50/50 to-violet-50/50 dark:from-purple-950/30 dark:to-violet-950/30 border border-purple-200/50 dark:border-purple-800/50 p-4 rounded-md shadow-sm hover:shadow-md transition-all duration-300">
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Last Activity</p>
                       <p className="text-lg font-medium">{formatTimeOnly(selectedDayData.last_activity)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Day End</p>
                     </div>
                   </div>
                 </CardContent>
@@ -324,25 +337,71 @@ const UserDetailsPage = () => {
                 </CardHeader>
                 <CardContent>
                   {isLoadingHistory ? (
-                    <div className="flex justify-center py-12">
-                      <div className="animate-pulse">Loading history data...</div>
+                    <div className="grid gap-6">
+                      {[1, 2, 3].map((i) => (
+                        <SkeletonCard key={i} rows={4} className="p-6" />
+                      ))}
                     </div>
                   ) : historyDays.length > 0 ? (
                     <div className="grid gap-6">
-                      {historyDays.map((day, index) => (
+                      {[...historyDays].reverse().map((day, index) => (
                         <div key={index} className="flex flex-col">
-                          <div className="font-medium text-lg mb-2">{day.date}</div>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-medium text-lg">{day.date}</div>
+                            <ActivityChart 
+                              data={[
+                                Math.round(day.total_active_time * 0.3), 
+                                Math.round(day.total_active_time * 0.5), 
+                                Math.round(day.total_active_time * 0.8), 
+                                Math.round(day.total_active_time * 0.6),
+                                Math.round(day.total_active_time * 0.7),
+                                Math.round(day.total_active_time * 0.4),
+                                Math.round(day.total_active_time * 0.2),
+                              ]} 
+                              height={24} 
+                              className="w-32" 
+                            />
+                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200/50 dark:border-green-800/50 p-4 rounded-md shadow-md hover:shadow-lg transition-all duration-300">
-                              <div className="text-sm text-gray-600 dark:text-gray-400">Active Time</div>
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm text-gray-600 dark:text-gray-400">Active Time</div>
+                                <Badge variant="success" size="sm">Productive</Badge>
+                              </div>
                               <div className="text-2xl font-bold mt-1 bg-gradient-to-r from-gray-900 to-green-900 dark:from-white dark:to-green-200 bg-clip-text text-transparent">{formatMinutesToTime(day.total_active_time * 60)}</div>
                             </div>
                             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-800/50 p-4 rounded-md shadow-md hover:shadow-lg transition-all duration-300">
-                              <div className="text-sm text-gray-600 dark:text-gray-400">Session Time</div>
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm text-gray-600 dark:text-gray-400">Session Time</div>
+                                <Badge variant="info" size="sm">Tracked</Badge>
+                              </div>
                               <div className="text-2xl font-bold mt-1 bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-200 bg-clip-text text-transparent">{day.total_session_time.toFixed(1)}h</div>
                             </div>
                             <div className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 border border-purple-200/50 dark:border-purple-800/50 p-4 rounded-md shadow-md hover:shadow-lg transition-all duration-300">
-                              <div className="text-sm text-gray-600 dark:text-gray-400">Most Used App</div>
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm text-gray-600 dark:text-gray-400">Most Used App</div>
+                                <HoverCardCustom
+                                  trigger={<Info className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer" />}
+                                  content={
+                                    <div>
+                                      <p className="font-medium">App Usage Details</p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">This shows the application where the user spent most of their time during this day.</p>
+                                      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                        <div className="text-xs font-medium">Time Distribution</div>
+                                        <div className="mt-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                          <div 
+                                            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500"
+                                            style={{ width: `${Math.min(100, (day.most_used_app_time / (day.total_active_time || 1)) * 100)}%` }}
+                                          ></div>
+                                        </div>
+                                        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                          {Math.round((day.most_used_app_time / (day.total_active_time || 1)) * 100)}% of active time
+                                        </div>
+                                      </div>
+                                    </div>
+                                  }
+                                />
+                              </div>
                               <div className="text-xl font-bold mt-1 bg-gradient-to-r from-gray-900 to-purple-900 dark:from-white dark:to-purple-200 bg-clip-text text-transparent">{day.most_used_app || "N/A"}</div>
                               {day.most_used_app_time > 0 && (
                                 <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -393,8 +452,15 @@ const UserDetailsPage = () => {
                 </CardHeader>
                 <CardContent>
                   {isLoadingScreenshots ? (
-                    <div className="flex justify-center py-12">
-                      <div className="animate-pulse">Loading screenshots...</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {Array(8).fill(0).map((_, i) => (
+                        <div key={i} className="border border-gray-200/50 dark:border-gray-700/50 rounded-lg overflow-hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-lg">
+                          <div className="relative h-40 bg-gray-200 dark:bg-gray-800 animate-pulse"></div>
+                          <div className="p-2 text-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
+                            <div className="h-4 w-20 mx-auto bg-gray-300 dark:bg-gray-700 rounded animate-pulse"></div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : screenshots.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
