@@ -12,7 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { User, Calendar } from "lucide-react";
+import { User, Calendar, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 interface ScreenshotsModalProps {
   isOpen: boolean;
@@ -22,24 +22,28 @@ interface ScreenshotsModalProps {
 }
 
 // Memoized screenshot item component
-const ScreenshotItem = memo(({ screenshot, index }: { screenshot: Screenshot; index: number }) => (
+const ScreenshotItem = memo(({ 
+  screenshot, 
+  index, 
+  onClick 
+}: { 
+  screenshot: Screenshot; 
+  index: number;
+  onClick: (index: number) => void;
+}) => (
   <div 
     key={screenshot.key} 
-    className="rounded-md border overflow-hidden flex flex-col"
+    className="rounded-md border overflow-hidden flex flex-col cursor-pointer"
+    onClick={() => onClick(index)}
   >
-    <a 
-      href={screenshot.url} 
-      target="_blank" 
-      rel="noopener noreferrer"
-      className="block overflow-hidden h-40"
-    >
+    <div className="block overflow-hidden h-40">
       <img 
         src={screenshot.url} 
         alt={`Screenshot ${index + 1}`}
         className="w-full h-full object-cover transition-transform hover:scale-105"
         loading="lazy"
       />
-    </a>
+    </div>
     <div className="p-2 text-center bg-gray-50 dark:bg-gray-800">
       <p className="text-xs text-muted-foreground">
         {formatTimeOnly(screenshot.last_modified)}
@@ -54,15 +58,37 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedScreenshot, setSelectedScreenshot] = useState<number | null>(null);
 
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
+  
+  const handleScreenshotClick = useCallback((index: number) => {
+    setSelectedScreenshot(index);
+  }, []);
+  
+  const handlePrevious = useCallback(() => {
+    if (selectedScreenshot !== null && screenshots.length > 0) {
+      setSelectedScreenshot((prev) => (prev === 0 ? screenshots.length - 1 : prev - 1));
+    }
+  }, [selectedScreenshot, screenshots.length]);
+  
+  const handleNext = useCallback(() => {
+    if (selectedScreenshot !== null && screenshots.length > 0) {
+      setSelectedScreenshot((prev) => (prev === screenshots.length - 1 ? 0 : prev + 1));
+    }
+  }, [selectedScreenshot, screenshots.length]);
+  
+  const closePreview = useCallback(() => {
+    setSelectedScreenshot(null);
+  }, []);
 
   useEffect(() => {
     if (isOpen && username) {
       setIsLoading(true);
       setError(null);
+      setSelectedScreenshot(null);
 
       api.fetchScreenshots(username, date)
         .then(data => {
@@ -115,13 +141,60 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
                 <ScreenshotItem 
                   key={screenshot.key}
                   screenshot={screenshot} 
-                  index={index} 
+                  index={index}
+                  onClick={handleScreenshotClick}
                 />
               ))}
             </div>
           ) : (
             <div className="flex justify-center items-center h-64">
               <p className="text-muted-foreground">No screenshots available for this date</p>
+            </div>
+          )}
+          
+          {/* Screenshot Preview Modal */}
+          {selectedScreenshot !== null && screenshots.length > 0 && (
+            <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+              <div className="relative w-full h-full flex flex-col items-center justify-center p-4">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="absolute top-4 right-4 rounded-full bg-black/20 hover:bg-black/40 text-white"
+                  onClick={closePreview}
+                >
+                  <X className="h-6 w-6" />
+                </Button>
+                
+                <div className="relative max-w-5xl max-h-[80vh] w-full h-full flex items-center justify-center">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute left-2 rounded-full bg-black/20 hover:bg-black/40 text-white"
+                    onClick={handlePrevious}
+                  >
+                    <ChevronLeft className="h-8 w-8" />
+                  </Button>
+                  
+                  <img 
+                    src={screenshots[selectedScreenshot].url} 
+                    alt={`Screenshot ${selectedScreenshot + 1}`}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute right-2 rounded-full bg-black/20 hover:bg-black/40 text-white"
+                    onClick={handleNext}
+                  >
+                    <ChevronRight className="h-8 w-8" />
+                  </Button>
+                </div>
+                
+                <div className="mt-4 bg-black/40 px-4 py-2 rounded-md text-white">
+                  {formatTimeOnly(screenshots[selectedScreenshot].last_modified)}
+                </div>
+              </div>
             </div>
           )}
         </div>
