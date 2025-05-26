@@ -3,6 +3,9 @@ import React, { useEffect, useState, memo, useCallback } from "react";
 import { api, Screenshot } from "@/lib/api";
 import { formatTimeOnly } from "@/lib/utils-time";
 import { Button } from "@/components/ui/button";
+import { LazyImage } from "@/components/ui/lazy-image";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import {
   Dialog,
   DialogContent,
@@ -37,11 +40,10 @@ const ScreenshotItem = memo(({
     onClick={() => onClick(index)}
   >
     <div className="block overflow-hidden h-40">
-      <img 
+      <LazyImage 
         src={screenshot.url} 
         alt={`Screenshot ${index + 1}`}
         className="w-full h-full object-cover transition-transform hover:scale-105"
-        loading="lazy"
       />
     </div>
     <div className="p-2 text-center bg-gray-50 dark:bg-gray-800">
@@ -123,6 +125,7 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <ErrorBoundary>
         <DialogHeader>
           <DialogTitle>Screenshots</DialogTitle>
           <DialogDescription>
@@ -143,8 +146,9 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
         
         <div className="flex-1 overflow-y-auto py-4">
           {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-pulse">Loading screenshots...</div>
+            <div className="flex flex-col justify-center items-center h-64 gap-4">
+              <LoadingSpinner size="lg" />
+              <div>Loading screenshots...</div>
             </div>
           ) : error ? (
             <div className="flex justify-center items-center h-64">
@@ -241,6 +245,7 @@ const ScreenshotsModal = memo(({ isOpen, onClose, username, date }: ScreenshotsM
         <DialogFooter>
           <Button onClick={handleClose}>Close</Button>
         </DialogFooter>
+        </ErrorBoundary>
       </DialogContent>
     </Dialog>
   );
