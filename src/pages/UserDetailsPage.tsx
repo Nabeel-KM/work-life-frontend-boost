@@ -346,7 +346,6 @@ const UserDetailsPage = () => {
                   ))}
                 </div>
                 
-                {/* Screenshot Preview Modal */}
                 {selectedScreenshot !== null && screenshots.length > 0 && (
                   <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
                     <div className="relative w-full h-full flex flex-col items-center justify-center p-4">
