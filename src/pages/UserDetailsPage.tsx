@@ -297,7 +297,7 @@ const UserDetailsPage = () => {
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Session Time</p>
                         <Badge variant="info" size="sm">Tracked</Badge>
                       </div>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-200 bg-clip-text text-transparent">{selectedDayData.total_session_time.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-200 bg-clip-text text-transparent">{formatHours(selectedDayData.total_session_time || 0)}</p>
                     </div>
                     <div className="bg-gradient-to-br from-amber-50/50 to-yellow-50/50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200/50 dark:border-amber-800/50 p-4 rounded-md shadow-sm hover:shadow-md transition-all duration-300">
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">First Activity</p>
@@ -375,7 +375,7 @@ const UserDetailsPage = () => {
                                 <div className="text-sm text-gray-600 dark:text-gray-400">Session Time</div>
                                 <Badge variant="info" size="sm">Tracked</Badge>
                               </div>
-                              <div className="text-2xl font-bold mt-1 bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-200 bg-clip-text text-transparent">{day.total_session_time.toFixed(1)}h</div>
+                              <div className="text-2xl font-bold mt-1 bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-200 bg-clip-text text-transparent">{formatHours(day.total_session_time || 0)}</div>
                             </div>
                             <div className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 border border-purple-200/50 dark:border-purple-800/50 p-4 rounded-md shadow-md hover:shadow-lg transition-all duration-300">
                               <div className="flex items-center justify-between">
