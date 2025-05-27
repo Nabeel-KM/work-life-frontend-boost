@@ -1,4 +1,3 @@
-
 import React, { useState, memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { UserData } from "@/lib/api";
@@ -198,7 +197,7 @@ const UserCard = memo(({ user, onViewScreenshots, onViewHistory }: UserCardProps
                   <h4 className="text-sm font-medium text-purple-900 dark:text-purple-200">Session</h4>
                 </div>
                 <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-                  {user.total_session_time?.toFixed(1)}h
+                  {formatHours(user.total_session_time || 0)}
                 </p>
               </div>
               <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/30 p-4 rounded-xl border border-amber-200/50 dark:border-amber-800/50">
