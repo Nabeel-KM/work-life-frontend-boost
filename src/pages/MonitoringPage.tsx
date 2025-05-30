@@ -1,4 +1,3 @@
-
 import React, { useState, Suspense, memo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useApi } from "@/hooks/use-api";
@@ -22,7 +21,12 @@ const MonitoringPage = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [historyUser, setHistoryUser] = useState<string | null>(null);
 
-  const { data: users, isLoading, error, refetch } = useApi(api.fetchDashboard);
+  // Memoize the fetch function to prevent it from being recreated on every render
+  const fetchDashboard = useCallback(() => {
+    return api.fetchDashboard();
+  }, []); // Empty dependency array since api.fetchDashboard is stable
+
+  const { data: users, isLoading, error, refetch } = useApi(fetchDashboard);
 
   const handleRefresh = useCallback(() => {
     refetch();

@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from './use-toast';
 
 interface ApiHookOptions<T> {
@@ -17,6 +16,8 @@ export function useApi<T>(
   const [isLoading, setIsLoading] = useState<boolean>(options.enabled !== false);
   const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
+  const fetchFnRef = useRef(fetchFn);
+  const mountedRef = useRef(true);
 
   const {
     onSuccess,
@@ -24,8 +25,13 @@ export function useApi<T>(
     enabled = true
   } = options;
 
+  // Update the ref when fetchFn changes
+  useEffect(() => {
+    fetchFnRef.current = fetchFn;
+  }, [fetchFn]);
+
   const fetchData = useCallback(async () => {
-    if (!enabled) {
+    if (!enabled || !mountedRef.current) {
       setIsLoading(false);
       return;
     }
@@ -35,7 +41,9 @@ export function useApi<T>(
       setError(null);
       
       console.log('🔄 Fetching data');
-      const result = await fetchFn();
+      const result = await fetchFnRef.current();
+      
+      if (!mountedRef.current) return;
       
       // Validate result to ensure it's not null or undefined
       if (result === null || result === undefined) {
@@ -46,6 +54,8 @@ export function useApi<T>(
       onSuccess?.(result);
       setIsLoading(false);
     } catch (err) {
+      if (!mountedRef.current) return;
+      
       const error = err instanceof Error ? err : new Error(String(err));
       console.error('API Error:', error);
       
@@ -59,18 +69,24 @@ export function useApi<T>(
         variant: "destructive"
       });
     }
-  }, [enabled, fetchFn, onError, onSuccess, toast]);
+  }, [enabled, onError, onSuccess, toast]);
 
   const refetch = useCallback(() => {
     fetchData();
   }, [fetchData]);
 
   useEffect(() => {
+    mountedRef.current = true;
+
     if (enabled) {
       fetchData();
     } else {
       setIsLoading(false);
     }
+
+    return () => {
+      mountedRef.current = false;
+    };
   }, [enabled, fetchData]);
 
   return { 
