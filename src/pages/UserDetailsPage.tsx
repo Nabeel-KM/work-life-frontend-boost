@@ -142,67 +142,77 @@ const UserDetailsPage = () => {
     if (selectedScreenshot === null || screenshots.length === 0) return null;
     
     return (
-      <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
         <div className="relative w-full h-full flex flex-col items-center justify-center p-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute top-4 right-4 rounded-full bg-black/20 hover:bg-black/40 text-white"
-            onClick={closePreview}
-          >
-            <X className="h-6 w-6" />
-          </Button>
-          
-          <div className="relative max-w-5xl max-h-[80vh] w-full h-full flex items-center justify-center">
+          {/* Top Controls */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+            <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full text-white border border-white/20">
+              {selectedScreenshot + 1} of {screenshots.length}
+            </div>
+            
             <Button 
               variant="ghost" 
               size="icon" 
-              className="absolute left-2 rounded-full bg-black/20 hover:bg-black/40 text-white"
+              className="rounded-full bg-black/40 hover:bg-black/60 text-white border border-white/20"
+              onClick={closePreview}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          
+          <div className="relative max-w-6xl max-h-[80vh] w-full h-full flex items-center justify-center">
+            {/* Left Navigation */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute left-4 z-10 rounded-full bg-black/40 hover:bg-black/60 text-white border border-white/20 w-12 h-12"
               onClick={handlePrevious}
             >
-              <ChevronLeft className="h-8 w-8" />
+              <ChevronLeft className="h-6 w-6" />
             </Button>
             
             <img 
               src={screenshots[selectedScreenshot].url} 
               alt={`Screenshot ${selectedScreenshot + 1}`}
-              className="max-w-full max-h-full object-contain transition-transform duration-200"
+              className="max-w-full max-h-full object-contain transition-transform duration-300 rounded-lg shadow-2xl"
               style={{ transform: `scale(${zoomLevel})` }}
             />
             
+            {/* Right Navigation */}
             <Button 
               variant="ghost" 
               size="icon" 
-              className="absolute right-2 rounded-full bg-black/20 hover:bg-black/40 text-white"
+              className="absolute right-4 z-10 rounded-full bg-black/40 hover:bg-black/60 text-white border border-white/20 w-12 h-12"
               onClick={handleNext}
             >
-              <ChevronRight className="h-8 w-8" />
+              <ChevronRight className="h-6 w-6" />
             </Button>
           </div>
           
-          <div className="mt-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+          {/* Bottom Controls */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full bg-black/20 hover:bg-black/40 text-white"
+                className="rounded-full hover:bg-white/20 text-white w-8 h-8"
                 onClick={zoomOut}
               >
-                <ZoomOut className="h-5 w-5" />
+                <ZoomOut className="h-4 w-4" />
               </Button>
-              <span className="bg-black/40 px-3 py-1 rounded-md text-white text-sm">
+              <span className="text-white text-sm font-medium min-w-[3rem] text-center">
                 {Math.round(zoomLevel * 100)}%
               </span>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full bg-black/20 hover:bg-black/40 text-white"
+                className="rounded-full hover:bg-white/20 text-white w-8 h-8"
                 onClick={zoomIn}
               >
-                <ZoomIn className="h-5 w-5" />
+                <ZoomIn className="h-4 w-4" />
               </Button>
             </div>
-            <div className="bg-black/40 px-4 py-2 rounded-md text-white">
+            <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full text-white border border-white/20">
               {formatTimeOnly(screenshots[selectedScreenshot].last_modified)}
             </div>
           </div>
@@ -230,7 +240,7 @@ const UserDetailsPage = () => {
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                     <User className="h-5 w-5 text-white" />
                   </div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-900 dark:from-white dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent">{displayName}</h1>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-200 bg-clip-text text-transparent">{displayName}</h1>
                 </div>
                 <p className="text-gray-600 dark:text-gray-400">Activity and monitoring details</p>
               </div>

@@ -1,8 +1,7 @@
-
 import React, { useState, Suspense, memo, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useApi } from "@/hooks/use-api";
-import { Check, Clock, User, AlertTriangle, RefreshCw, Activity, TrendingUp } from "lucide-react";
+import { Check, Clock, User, AlertTriangle, RefreshCw, Activity } from "lucide-react";
 import { api, UserData } from "@/lib/api";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import UserCard from "@/components/monitoring/UserCard";
@@ -120,12 +119,6 @@ const MonitoringPage = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="hidden md:flex items-center gap-2 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl px-4 py-2 border border-gray-200/50 dark:border-gray-700/50">
-                      <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {productivityRate}% Productivity
-                      </span>
-                    </div>
                     <Button 
                       onClick={handleRefresh} 
                       className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 px-6 py-3 rounded-xl"
@@ -139,8 +132,8 @@ const MonitoringPage = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-              {/* Enhanced Stats Cards with Improved Animation */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Enhanced Stats Cards - now only 3 cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="group hover:scale-105 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0ms' }}>
                   <StatsCard 
                     title="Active Employees"
@@ -169,16 +162,6 @@ const MonitoringPage = () => {
                     icon={<User className="h-5 w-5" />}
                     trend={safeUsers.length ? Math.round((offlineUsers.length / safeUsers.length) * 100) : 0}
                     className="bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-950/30 dark:via-slate-950/30 dark:to-gray-900/30 border-gray-200/50 dark:border-gray-800/50 shadow-xl hover:shadow-2xl transition-all duration-300"
-                  />
-                </div>
-                <div className="group hover:scale-105 transition-all duration-300 animate-fade-in" style={{ animationDelay: '300ms' }}>
-                  <StatsCard 
-                    title="Productivity Rate"
-                    value={`${productivityRate}%`}
-                    description="Overall team efficiency"
-                    icon={<TrendingUp className="h-5 w-5" />}
-                    trend={productivityRate}
-                    className="bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-blue-900/30 border-blue-200/50 dark:border-blue-800/50 shadow-xl hover:shadow-2xl transition-all duration-300"
                   />
                 </div>
               </div>
