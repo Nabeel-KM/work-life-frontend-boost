@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
-import { UserMetrics } from '@/lib/api';
+import { UserData } from '@/lib/api';
 
 interface DebugMetricsProps {
-  metrics: UserMetrics;
+  metrics: UserData;
 }
 
 export function DebugMetrics({ metrics }: DebugMetricsProps) {
