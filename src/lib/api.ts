@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 // Create axios instance with default config
@@ -122,6 +121,43 @@ export interface UserHistory {
   days: HistoryDay[];
 }
 
+// New metrics types
+export interface SystemMetrics {
+  total_users: number;
+  active_users_this_week: number;
+  total_sessions_this_week: number;
+  total_activities_this_week: number;
+  avg_screen_share_time: number;
+  top_applications: Array<{ app: string; count: number }>;
+  daily_stats: Array<{
+    date: string;
+    total_screen_share: number;
+    total_activities: number;
+    unique_users: number;
+  }>;
+  timestamp: string;
+}
+
+export interface UserMetrics {
+  username: string;
+  display_name?: string;
+  date_range: {
+    start: string;
+    end: string;
+  };
+  total_sessions: number;
+  total_activities: number;
+  total_screen_share_time: number;
+  app_usage: Record<string, number>;
+  daily_summaries: Array<{
+    date: string;
+    total_screen_share_time: number;
+    total_activities: number;
+    app_usage: Record<string, number>;
+  }>;
+  timestamp: string;
+}
+
 // API functions
 export const api = {
   fetchDashboard: async () => {
@@ -216,6 +252,46 @@ export const api = {
     } catch (error) {
       console.error(`Failed to fetch screenshots for ${username}:`, error);
       throw new Error(`Could not retrieve screenshots for ${username}. Please check your network connection.`);
+    }
+  },
+
+  fetchSystemMetrics: async (): Promise<SystemMetrics> => {
+    try {
+      const response = await axiosInstance.get('/metrics/system');
+      
+      console.log('System metrics response received:', !!response.data);
+      
+      if (!response.data) {
+        console.warn('Empty response from system metrics API');
+        throw new Error("Empty response from server");
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch system metrics:", error);
+      throw new Error("Could not retrieve system metrics. Please check your network connection.");
+    }
+  },
+
+  fetchUserMetrics: async (username: string, startDate?: string, endDate?: string): Promise<UserMetrics> => {
+    try {
+      const params: Record<string, string> = { username };
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+
+      const response = await axiosInstance.get('/metrics/user', { params });
+      
+      console.log('User metrics response received:', !!response.data);
+      
+      if (!response.data) {
+        console.warn('Empty response from user metrics API');
+        throw new Error("Empty response from server");
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch user metrics for ${username}:`, error);
+      throw new Error(`Could not retrieve metrics for ${username}. Please try again later.`);
     }
   }
 };
