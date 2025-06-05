@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 // Create axios instance with default config
@@ -51,6 +50,39 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Add a comprehensive date serializer function
+function serializeResponse(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  
+  if (typeof obj === 'string') {
+    // Check if it's a date-like string and try to parse it
+    if (/^\d{4}-\d{2}-\d{2}/.test(obj)) {
+      return obj; // Already a proper date string
+    }
+    return obj;
+  }
+  
+  if (obj instanceof Date) {
+    return obj.toISOString();
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => serializeResponse(item));
+  }
+  
+  if (typeof obj === 'object') {
+    const serialized: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      serialized[key] = serializeResponse(value);
+    }
+    return serialized;
+  }
+  
+  return obj;
+}
 
 // Types for API responses
 export interface UserData {
@@ -268,10 +300,11 @@ export const api = {
         throw new Error("Empty response from server");
       }
       
-      // Log the structure to debug date issues
-      console.log('📊 System metrics daily_stats:', response.data.daily_stats);
+      // Serialize any date objects in the response
+      const serializedData = serializeResponse(response.data);
+      console.log('📊 System metrics serialized data:', serializedData);
       
-      return response.data;
+      return serializedData;
     } catch (error) {
       console.error("Failed to fetch system metrics:", error);
       if (error.response?.data?.detail) {
@@ -298,11 +331,11 @@ export const api = {
         throw new Error("Empty response from server");
       }
       
-      // Log the structure to debug date issues
-      console.log('📊 User metrics daily_summaries:', response.data.daily_summaries);
-      console.log('📊 User metrics date_range:', response.data.date_range);
+      // Serialize any date objects in the response
+      const serializedData = serializeResponse(response.data);
+      console.log('📊 User metrics serialized data:', serializedData);
       
-      return response.data;
+      return serializedData;
     } catch (error) {
       console.error(`Failed to fetch user metrics for ${username}:`, error);
       if (error.response?.data?.detail) {
