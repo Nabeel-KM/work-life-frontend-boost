@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 // Create axios instance with default config
@@ -257,18 +258,26 @@ export const api = {
 
   fetchSystemMetrics: async (): Promise<SystemMetrics> => {
     try {
+      console.log('🔍 Fetching system metrics...');
       const response = await axiosInstance.get('/metrics/system');
       
-      console.log('System metrics response received:', !!response.data);
+      console.log('📊 System metrics raw response:', response.data);
       
       if (!response.data) {
         console.warn('Empty response from system metrics API');
         throw new Error("Empty response from server");
       }
       
+      // Log the structure to debug date issues
+      console.log('📊 System metrics daily_stats:', response.data.daily_stats);
+      
       return response.data;
     } catch (error) {
       console.error("Failed to fetch system metrics:", error);
+      if (error.response?.data?.detail) {
+        console.error("Backend error detail:", error.response.data.detail);
+        throw new Error(`Backend error: ${error.response.data.detail}`);
+      }
       throw new Error("Could not retrieve system metrics. Please check your network connection.");
     }
   },
@@ -279,18 +288,27 @@ export const api = {
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
 
+      console.log('🔍 Fetching user metrics with params:', params);
       const response = await axiosInstance.get('/metrics/user', { params });
       
-      console.log('User metrics response received:', !!response.data);
+      console.log('📊 User metrics raw response:', response.data);
       
       if (!response.data) {
         console.warn('Empty response from user metrics API');
         throw new Error("Empty response from server");
       }
       
+      // Log the structure to debug date issues
+      console.log('📊 User metrics daily_summaries:', response.data.daily_summaries);
+      console.log('📊 User metrics date_range:', response.data.date_range);
+      
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch user metrics for ${username}:`, error);
+      if (error.response?.data?.detail) {
+        console.error("Backend error detail:", error.response.data.detail);
+        throw new Error(`Backend error: ${error.response.data.detail}`);
+      }
       throw new Error(`Could not retrieve metrics for ${username}. Please try again later.`);
     }
   }
