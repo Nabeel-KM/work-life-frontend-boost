@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 // Create axios instance with default config
@@ -50,39 +51,6 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// Add a comprehensive date serializer function
-function serializeResponse(obj: any): any {
-  if (obj === null || obj === undefined) {
-    return obj;
-  }
-  
-  if (typeof obj === 'string') {
-    // Check if it's a date-like string and try to parse it
-    if (/^\d{4}-\d{2}-\d{2}/.test(obj)) {
-      return obj; // Already a proper date string
-    }
-    return obj;
-  }
-  
-  if (obj instanceof Date) {
-    return obj.toISOString();
-  }
-  
-  if (Array.isArray(obj)) {
-    return obj.map(item => serializeResponse(item));
-  }
-  
-  if (typeof obj === 'object') {
-    const serialized: any = {};
-    for (const [key, value] of Object.entries(obj)) {
-      serialized[key] = serializeResponse(value);
-    }
-    return serialized;
-  }
-  
-  return obj;
-}
 
 // Types for API responses
 export interface UserData {
@@ -152,43 +120,6 @@ export interface UserHistory {
   username: string;
   display_name?: string;
   days: HistoryDay[];
-}
-
-// New metrics types
-export interface SystemMetrics {
-  total_users: number;
-  active_users_this_week: number;
-  total_sessions_this_week: number;
-  total_activities_this_week: number;
-  avg_screen_share_time: number;
-  top_applications: Array<{ app: string; count: number }>;
-  daily_stats: Array<{
-    date: string;
-    total_screen_share: number;
-    total_activities: number;
-    unique_users: number;
-  }>;
-  timestamp: string;
-}
-
-export interface UserMetrics {
-  username: string;
-  display_name?: string;
-  date_range: {
-    start: string;
-    end: string;
-  };
-  total_sessions: number;
-  total_activities: number;
-  total_screen_share_time: number;
-  app_usage: Record<string, number>;
-  daily_summaries: Array<{
-    date: string;
-    total_screen_share_time: number;
-    total_activities: number;
-    app_usage: Record<string, number>;
-  }>;
-  timestamp: string;
 }
 
 // API functions
@@ -285,64 +216,6 @@ export const api = {
     } catch (error) {
       console.error(`Failed to fetch screenshots for ${username}:`, error);
       throw new Error(`Could not retrieve screenshots for ${username}. Please check your network connection.`);
-    }
-  },
-
-  fetchSystemMetrics: async (): Promise<SystemMetrics> => {
-    try {
-      console.log('🔍 Fetching system metrics...');
-      const response = await axiosInstance.get('/metrics/system');
-      
-      console.log('📊 System metrics raw response:', response.data);
-      
-      if (!response.data) {
-        console.warn('Empty response from system metrics API');
-        throw new Error("Empty response from server");
-      }
-      
-      // Serialize any date objects in the response
-      const serializedData = serializeResponse(response.data);
-      console.log('📊 System metrics serialized data:', serializedData);
-      
-      return serializedData;
-    } catch (error) {
-      console.error("Failed to fetch system metrics:", error);
-      if (error.response?.data?.detail) {
-        console.error("Backend error detail:", error.response.data.detail);
-        throw new Error(`Backend error: ${error.response.data.detail}`);
-      }
-      throw new Error("Could not retrieve system metrics. Please check your network connection.");
-    }
-  },
-
-  fetchUserMetrics: async (username: string, startDate?: string, endDate?: string): Promise<UserMetrics> => {
-    try {
-      const params: Record<string, string> = { username };
-      if (startDate) params.start_date = startDate;
-      if (endDate) params.end_date = endDate;
-
-      console.log('🔍 Fetching user metrics with params:', params);
-      const response = await axiosInstance.get('/metrics/user', { params });
-      
-      console.log('📊 User metrics raw response:', response.data);
-      
-      if (!response.data) {
-        console.warn('Empty response from user metrics API');
-        throw new Error("Empty response from server");
-      }
-      
-      // Serialize any date objects in the response
-      const serializedData = serializeResponse(response.data);
-      console.log('📊 User metrics serialized data:', serializedData);
-      
-      return serializedData;
-    } catch (error) {
-      console.error(`Failed to fetch user metrics for ${username}:`, error);
-      if (error.response?.data?.detail) {
-        console.error("Backend error detail:", error.response.data.detail);
-        throw new Error(`Backend error: ${error.response.data.detail}`);
-      }
-      throw new Error(`Could not retrieve metrics for ${username}. Please try again later.`);
     }
   }
 };
